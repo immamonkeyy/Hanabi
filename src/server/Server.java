@@ -2,6 +2,8 @@ package server;
 import java.io.IOException;
 import java.net.ServerSocket;
 
+//kill $(lsof -t -i :8901)
+
 public class Server {
 	
 	public static final int PORT = 8901;
