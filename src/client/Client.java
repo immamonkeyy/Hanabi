@@ -117,6 +117,7 @@ public class Client {
                 		handleResponse(response, Commands.VALID_PLAY, (playerName, position) -> {
                 			ClientCard played = removePlayerCard(playerName, position);
                 			board.validPlay(played);
+                			board.update();
                 		});
             			
                 } else if(response.startsWith(Commands.INVALID_PLAY)) {
@@ -183,19 +184,6 @@ public class Client {
     		ClientPlayer player = new ClientPlayer(name, isMe, buttonPanel);
     		players.addPlayer(player);
     }
-    
-//    private String selectedCardString() {
-//    		if (selectedCards.isEmpty()) return "";
-//    		
-//    		StringBuilder res = new StringBuilder(selectedCards.size());
-//    		Iterator<ClientCard> it = selectedCards.iterator();
-//    		
-//    		res.append(it.next().getPosition());
-//    		while (it.hasNext()) {
-//    			res.append("," + it.next().getPosition());
-//    		}
-//    		return res.toString();
-//    }
     
     private void chooseStartingPlayerThread() {
 		new Thread(() -> {
@@ -303,13 +291,14 @@ public class Client {
     		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     		frame.setSize(600, 600);
     		
-    		JPanel board = new JPanel();
-    		board.setBackground(BOARD_COLOR);
-    		board.setLayout(new BorderLayout());
-    		frame.add(board);
+    		JPanel view = new JPanel();
+    		view.setBackground(BOARD_COLOR);
+    		view.setLayout(new BorderLayout());
+    		frame.add(view);
     		
-    		board.add(playersCards, BorderLayout.NORTH);
-    		board.add(myCards, BorderLayout.SOUTH);
+    		view.add(playersCards, BorderLayout.NORTH);
+    		view.add(myCards, BorderLayout.SOUTH);
+    		view.add(board, BorderLayout.CENTER);
     		
     		frame.setVisible(true);
     }

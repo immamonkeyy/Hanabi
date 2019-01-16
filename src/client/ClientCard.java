@@ -22,6 +22,8 @@ import shared.HandCard;
 @SuppressWarnings("serial")
 public class ClientCard extends JPanel {
 	
+	private static Dimension CARD_DIMENSION = new Dimension(90, 150);
+	
 	private HandCard card;
 	private boolean selected;
 	private boolean hasMouseListener; //fix this mess
@@ -33,6 +35,13 @@ public class ClientCard extends JPanel {
 		this.position = pos;
 		this.selected = false;
 		this.hasMouseListener = false;
+	}
+	
+	public static JPanel getEmptySpot() {
+		JPanel p = new JPanel();
+		p.setPreferredSize(CARD_DIMENSION);
+		p.setOpaque(false);
+		return p;
 	}
 	
 	public int getPosition() {
@@ -48,7 +57,7 @@ public class ClientCard extends JPanel {
 	}
 	
 	public void display() {
-		this.setPreferredSize(new Dimension(90, 150));
+		this.setPreferredSize(CARD_DIMENSION);
 		this.setBorder(new LineBorder(Color.WHITE, 5));
 		this.setBackground(Color.BLUE);
 		this.setLayout(new BorderLayout());

@@ -15,8 +15,7 @@ public class Deck {
 	public Deck(boolean multicolor) {
 		next = 0;
 		
-		int size = ALL_VALUES.length * CardColor.ALL_COLORS.length;
-		if (multicolor) size += ALL_VALUES.length; // make room for rainbow cards
+		int size = ALL_VALUES.length * CardColor.getAllColors(multicolor).length;
 		
 		cards = new Card[size];
 		populateCards(multicolor);
@@ -24,10 +23,9 @@ public class Deck {
 	}
 	
 	private void populateCards(boolean multicolor) {
-		for (CardColor color : CardColor.ALL_COLORS) {
+		for (CardColor color : CardColor.getAllColors(multicolor)) {
 			populateColor(color);
 		}
-		if (multicolor) populateColor(new Rainbow());
 		next = 0;
 	}
 	

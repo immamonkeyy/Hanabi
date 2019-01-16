@@ -14,6 +14,7 @@ public abstract class CardColor {
 	
 	public static final Color LIGHT_BLUE_COLOR = new Color(135,206,250);
 	
+	// Make these private?
 	public static final CardColor RED = new Red();
 	public static final CardColor YELLOW = new Yellow();
 	public static final CardColor GREEN = new Green();
@@ -21,7 +22,12 @@ public abstract class CardColor {
 	public static final CardColor WHITE = new White();
 	public static final CardColor MULTI = new Rainbow();
 	
-	public static final CardColor[] ALL_COLORS = new CardColor[] { RED, YELLOW, GREEN, BLUE, WHITE };
+	private static final CardColor[] ALL_COLORS = new CardColor[] { RED, YELLOW, GREEN, BLUE, WHITE };
+	private static final CardColor[] ALL_COLORS_WITH_MULTI = new CardColor[] { RED, YELLOW, GREEN, BLUE, WHITE, MULTI };
+	
+	public static final CardColor[] getAllColors(boolean multi) {
+		return multi ? ALL_COLORS_WITH_MULTI : ALL_COLORS;
+	}
 	
 	public abstract Color getColor();
 	
