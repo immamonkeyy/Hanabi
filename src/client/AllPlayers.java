@@ -46,5 +46,9 @@ public class AllPlayers {
     public ClientPlayer getTurn() {
     		return turn;
     }
+    
+    public void nextTurn() {
+    		turn = turn.getNextPlayer();
+    }
 
 }

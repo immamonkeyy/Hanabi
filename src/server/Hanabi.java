@@ -2,34 +2,48 @@ package server;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 public class Hanabi {
 	
 	private ServerPlayer currentPlayer;
 	private List<ServerPlayer> players;
-	private boolean started = false;
+	private boolean started;
 	private Deck deck;
+	
+	private ColorMap<Card> played;
+	private ColorMap<List<Card>> discarded;
 	
 	private int remainingClues;
 	private int remainingFuckups;
 	
+	private static final Card NOT_PLAYED = null; // placeholder in Map before a color has been played
+	
 	public Hanabi() {
+		boolean multicolor = true;
+		
 		players = new ArrayList<ServerPlayer>();
-		deck = new Deck(true); // with rainbow
+		deck = new Deck(multicolor); // with rainbow
+		
+		played = new ColorMap<Card>(multicolor, () -> NOT_PLAYED);
+		discarded = new ColorMap<List<Card>>(multicolor, () -> new ArrayList<Card>());
+		
+		started = false;
 		remainingClues = 8;
 		remainingFuckups = 3;
 	}
 	
-	public boolean existingName(String name) {
+	// Get existing name that matches the given name, null if not found
+	public String getExistingName(String name) {
 		if (name == null || name.trim().isEmpty()) {
-			return false;
+			return null;
 		}
 		for (ServerPlayer p : players) {
 			if(p.getPlayerName().toLowerCase().trim().equals(name.toLowerCase().trim())) {
-				return true;
+				return p.getPlayerName();
 			}
 		}
-		return false;
+		return null;
 	}
 	
 	public boolean addPlayer(ServerPlayer newPlayer) {
@@ -38,7 +52,7 @@ public class Hanabi {
 			return false;
 		}
 		
-		if (existingName(name)) return false;
+		if (getExistingName(name) != null) return false;
 		
 		System.out.println("Adding player with name: " + name);
 		
@@ -63,9 +77,8 @@ public class Hanabi {
 		
 		for (ServerPlayer p : players) {
 			p.startGame(playerName);
-			if (playerName.equals(p.getPlayerName())) {
+			if (playerName.equals(p.getPlayerName()))
 				currentPlayer = p;
-			}
 		}
 		
 		System.out.println("Starting game!");
@@ -74,24 +87,76 @@ public class Hanabi {
 		deal();
 	}
 	
-	public void deal() {
-		int cardsPerPlayer = 5;
-		if (players.size() > 3) {
-			cardsPerPlayer = 4;
-		}
+	private void deal() {
+		int cardsPerPlayer = players.size() > 3 ? 4 : 5;
 		
-		ServerPlayer player = currentPlayer;
 		for (int c = 0; c < cardsPerPlayer; c++) {
-			for (int i = 0; i < players.size(); i++) {
-				Card card = deck.draw();
-				for (ServerPlayer p : players) {
-					p.draw(player, card);
-				}
-				player = player.getNextPlayer();
+			forEachPlayer(player -> {
+				draw(player);
 				try {
 					TimeUnit.MILLISECONDS.sleep(50);
 				} catch (InterruptedException e) { }
-			}
+			});
+		}
+	}
+	
+	public boolean isValidPlay(Card c) {
+		// Color not started, playing 1
+		if (played.get(c.color()) == NOT_PLAYED && c.value() == 1) {
+			return true;
+		}
+		// Color started, playing next number correctly
+		if (played.get(c.color()) != NOT_PLAYED && played.get(c.color()).value() + 1 == c.value()) {
+			return true;
+		}
+		return false;
+	}
+	
+	public void play(int position) {
+		Card card = currentPlayer.getHand().remove(position).getCard();
+		
+		System.out.println(currentPlayer.getPlayerName() + " is playing card " + position + ", " + (isValidPlay(card) ? "VALID" : "NOT VALID"));
+		
+		if (isValidPlay(card)) {
+			validPlay(position, card);
+		} else {
+			invalidPlay(position, card);
+		}
+		draw(currentPlayer);
+		nextTurn();
+	}
+	
+	private void validPlay(int position, Card card) {
+		played.put(card.color(), card);
+		forEachPlayer(p -> p.validPlay(currentPlayer, position));
+	}
+	
+	private void invalidPlay(int position, Card card) {
+		List<Card> colorList = discarded.get(card.color());
+		colorList.add(card);
+		forEachPlayer(p -> p.invalidPlay(currentPlayer, position));
+		remainingFuckups--;
+		if (remainingFuckups == 0) {
+			// GAME OVER! YOU SUCK
+		}
+	}
+	
+	private void nextTurn() {
+		currentPlayer = currentPlayer.getNextPlayer();
+		forEachPlayer(p -> p.nextTurn());
+	}
+	
+	private void draw(ServerPlayer player) {
+		Card card = deck.draw();
+		forEachPlayer(p -> p.draw(player, card));
+	}
+	
+	// Pass each player to the given consumer in turn order, starting with the current player
+	private void forEachPlayer(Consumer<ServerPlayer> c) {
+		ServerPlayer player = currentPlayer;
+		for (int i = 0; i < players.size(); i++) {
+			c.accept(player);
+			player = player.getNextPlayer();
 		}
 	}
 	

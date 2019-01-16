@@ -6,12 +6,10 @@ import java.awt.LayoutManager;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import server.Card;
-import shared.HandCard;
 
 public class ClientPlayer {
 	
@@ -95,5 +93,14 @@ public class ClientPlayer {
 		if (l != null) p.setLayout(l);
 		return p;
     }
+
+	public ClientCard removeCard(int position) {
+		ClientCard removed = hand.remove(position);
+		for (ClientCard c : hand) {
+			if (c.getPosition() > position)
+				c.decrementPosition();
+		}
+		return removed;
+	}
 
 }

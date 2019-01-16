@@ -12,22 +12,22 @@ public class Deck {
 	private Card[] cards;
 	private int next;
 	
-	public Deck(boolean rainbow) {
+	public Deck(boolean multicolor) {
 		next = 0;
 		
 		int size = ALL_VALUES.length * CardColor.ALL_COLORS.length;
-		if (rainbow) size += ALL_VALUES.length; // make room for rainbow cards
+		if (multicolor) size += ALL_VALUES.length; // make room for rainbow cards
 		
 		cards = new Card[size];
-		populateCards(rainbow);
+		populateCards(multicolor);
 		shuffle();
 	}
 	
-	private void populateCards(boolean rainbow) {
+	private void populateCards(boolean multicolor) {
 		for (CardColor color : CardColor.ALL_COLORS) {
 			populateColor(color);
 		}
-		if (rainbow) populateColor(new Rainbow());
+		if (multicolor) populateColor(new Rainbow());
 		next = 0;
 	}
 	

@@ -41,11 +41,27 @@ public class ServerPlayer extends Thread {
 		hand = new ArrayList<HandCard>();
 	}
 	
+	public List<HandCard> getHand() {
+		return hand;
+	}
+	
 	public void draw(ServerPlayer p, Card card) {
 		if (p == this) hand.add(new HandCard(card));
 		clientOut.println(Commands.DRAW_CARD + p.getPlayerName() + ":" + card.toString());
 	}
 
+	public void validPlay(ServerPlayer p, int position) {
+		clientOut.println(Commands.VALID_PLAY + p.getPlayerName() + ":" + position);
+	}
+	
+	public void invalidPlay(ServerPlayer p, int position) {
+		clientOut.println(Commands.INVALID_PLAY + p.getPlayerName() + ":" + position);
+	}
+	
+	public void nextTurn() {
+		clientOut.println(Commands.NEXT_TURN);
+	}
+	
 	public void setNextPlayer(ServerPlayer p) {
 		nextPlayer = p;
 	}
@@ -86,13 +102,15 @@ public class ServerPlayer extends Thread {
 				
 				else if (command.startsWith(Commands.CHOOSE_STARTING_PLAYER)) {
 					String startingPlayer = command.substring(Commands.CHOOSE_STARTING_PLAYER.length());
-					if (game.existingName(startingPlayer)) {
-						game.startGame(startingPlayer);
+					String correctedCase = game.getExistingName(startingPlayer); //null if player not found
+					if (correctedCase != null) {
+						game.startGame(correctedCase);
 					} else clientOut.println(Commands.CHOOSE_STARTING_PLAYER);
 					
 				} else if (command.startsWith(Commands.PLAY)) {
-					String card = command.substring(Commands.PLAY.length());
-					System.out.println("PLAYING " + card);
+					String position = command.substring(Commands.PLAY.length());
+					game.play(Integer.parseInt(position));
+					System.out.println("PLAYING " + position);
 					
 				} else if (command.startsWith(Commands.DISCARD)) {
 					String card = command.substring(Commands.DISCARD.length());

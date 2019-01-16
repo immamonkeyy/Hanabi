@@ -19,6 +19,7 @@ import shared.HandCard;
 
 // Wrapper class for Card
 // Adds functionality to display Card
+@SuppressWarnings("serial")
 public class ClientCard extends JPanel {
 	
 	private HandCard card;
@@ -38,7 +39,7 @@ public class ClientCard extends JPanel {
 		return position;
 	}
 	
-	public void slide() {
+	public void decrementPosition() {
 		position--;
 	}
 	
@@ -97,10 +98,14 @@ public class ClientCard extends JPanel {
 		return panel;
 	}
 	
+	public CardColor color() {
+		return card.color();
+	}
+	
 	// Makes a text label and sets it to the card's color, with the corret font and stuff
 	private JLabel getLabel(String text, int size) {
 		JLabel label = new JLabel(text);
-		label.setForeground(card.color().getColor());
+		label.setForeground(this.color().getColor());
 		label.setFont(new Font("Impact", Font.BOLD, size));
 		return label;
 	}

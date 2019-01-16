@@ -2,24 +2,20 @@ package client;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.FlowLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.io.BufferedReader;
 
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
+import java.util.function.BiConsumer;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
@@ -27,7 +23,6 @@ import javax.swing.SwingUtilities;
 import color.CardColor;
 import server.Card;
 import shared.Commands;
-import shared.HandCard;
 
 /*
  * Client needs to know:
@@ -57,6 +52,7 @@ public class Client {
 	
 	private String myName;
 	private JDialog dialog;
+	private ClientBoard board;
     
     private static final Color BOARD_COLOR = new Color(0, 153, 0);
 	
@@ -76,6 +72,7 @@ public class Client {
 		
 		myName = null;
 		dialog = null;
+		board = new ClientBoard();
 	}
 	
 	public Client(String serverAddress, String name) throws Exception {
@@ -116,18 +113,52 @@ public class Client {
                 			}
                 		});
                 		
+                } else if(response.startsWith(Commands.VALID_PLAY)) {
+                		handleResponse(response, Commands.VALID_PLAY, (playerName, position) -> {
+                			ClientCard played = removePlayerCard(playerName, position);
+                			board.validPlay(played);
+                		});
+            			
+                } else if(response.startsWith(Commands.INVALID_PLAY)) {
+	            		handleResponse(response, Commands.INVALID_PLAY, (playerName, position) -> {
+	            			ClientCard played = removePlayerCard(playerName, position);
+	            			board.invalidPlay(played);
+	            		});
+                		
                 } else if (response.startsWith(Commands.DRAW_CARD)) {
-                		String input = response.substring(Commands.DRAW_CARD.length());
-                		int split = input.indexOf(':');
-                		String playerName = input.substring(0, split);
-                		Card card = getCard(input.substring(split + 1));
-                		addPlayerCard(playerName, card);
+	            		handleResponse(response, Commands.DRAW_CARD, (playerName, cardStr) -> {
+	                		addPlayerCard(playerName, cardStr);
+	            		});
+	            		
+                } else if(response.startsWith(Commands.NEXT_TURN)) {
+                		players.nextTurn();
+                		clearSelected();
+                		updateMyCards();
+                		updatePlayersCards();
                 }
             }
         }
         finally {
             socket.close();
         }
+    }
+    
+    private void clearSelected() {
+    		if (selectedPlayer != null) {
+	    		selectedPlayer.buttonsVisible(false);
+			selectedPlayer = null;
+			selectedCards.clear();
+    		}
+    }
+    
+    //To handle responses like "COMMAND PlayerName:Value"
+    private void handleResponse(String response, String command, BiConsumer<String, String> handler) {
+    		String input = response.substring(command.length());
+    		int split = input.indexOf(':');
+    		String playerName = input.substring(0, split);
+    		String value = input.substring(split + 1);
+    		
+    		handler.accept(playerName, value);
     }
     
     private void addPlayer(String name) {
@@ -176,7 +207,15 @@ public class Client {
 		}).start();
     }
     
-    private void addPlayerCard(String playerName, Card card) {
+    private ClientCard removePlayerCard(String playerName, String position) {
+		ClientCard card = players.get(playerName).removeCard(Integer.parseInt(position));
+		if (playerName.equals(myName)) updateMyCards();
+		else updatePlayersCards();
+		return card;
+    }
+    
+    private void addPlayerCard(String playerName, String cardStr) {
+		Card card = getCard(cardStr);
 		players.get(playerName).draw(card);
 		if (playerName.equals(myName)) updateMyCards();
 		else updatePlayersCards();
