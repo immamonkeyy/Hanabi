@@ -197,14 +197,41 @@ public class Client {
     
     private ClientCard removePlayerCard(String playerName, String position) {
 		ClientCard card = players.get(playerName).removeCard(Integer.parseInt(position));
+		card.removeMouseListener();
 		if (playerName.equals(myName)) updateMyCards();
 		else updatePlayersCards();
 		return card;
     }
     
     private void addPlayerCard(String playerName, String cardStr) {
-		Card card = getCard(cardStr);
-		players.get(playerName).draw(card);
+    		ClientPlayer player = players.get(playerName);
+		ClientCard card = player.addCard(getCard(cardStr));
+		card.addMouseListener(new MouseAdapter() {
+
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				if (validClick(player)) {
+					if (selectedPlayer == null) {
+						selectedPlayer = player;
+						selectedPlayer.buttonsVisible(true);
+					}
+					
+					if (!players.get(myName).equals(selectedPlayer) || // selected another player's cards
+							selectedCards.isEmpty() || // selected my own card, first one
+							selectedCards.contains(card)) { // deselected my own card
+						
+						card.click();
+						if (selectedCards.contains(card)) {
+							selectedCards.remove(card);
+							if (selectedCards.isEmpty()) {
+								selectedPlayer.buttonsVisible(false);
+								selectedPlayer = null;
+							}
+						} else selectedCards.add(card);
+					}
+				}
+			}
+		});
 		if (playerName.equals(myName)) updateMyCards();
 		else updatePlayersCards();
     }
@@ -223,22 +250,22 @@ public class Client {
 		while (!player.getNextPlayer().equals(me)) {
 			player = player.getNextPlayer();
 			playersCards.add(getPlayerPanel(player));
+			player.buttonsVisible(false);
 		}
 
-		playersCards.repaint();
 		playersCards.revalidate();
+		playersCards.repaint();
     }
     
     private JPanel getPlayerPanel(ClientPlayer player) {
     		boolean turn = players.getTurn().equals(player);
-    		JPanel playerPanel = player.getPlayerPanel(turn);
-		addMouseListeners(player);
-		return playerPanel;
+    		return player.getPlayerPanel(turn);
     }
     
     private void updateMyCards() {
     		myCards.removeAll();
     		myCards.add(getPlayerPanel(players.get(myName)));
+    		players.get(myName).buttonsVisible(false);
     		myCards.revalidate();
     		myCards.repaint();
     }
@@ -255,41 +282,10 @@ public class Client {
     		return true;
     }
     
-    private void addMouseListeners(ClientPlayer player) {
-		for (ClientCard card : player.getHand()) {
-			card.addMouseListener(new MouseAdapter() {
-
-				@Override
-				public void mouseClicked(MouseEvent e) {
-					if (validClick(player)) {
-						if (selectedPlayer == null) {
-							selectedPlayer = player;
-							selectedPlayer.buttonsVisible(true);
-						}
-						
-						if (!players.get(myName).equals(selectedPlayer) || // selected another player's cards
-								selectedCards.isEmpty() || // selected my own card, first one
-								selectedCards.contains(card)) { // deselected my own card
-							
-							card.click();
-							if (selectedCards.contains(card)) {
-								selectedCards.remove(card);
-								if (selectedCards.isEmpty()) {
-									selectedPlayer.buttonsVisible(false);
-									selectedPlayer = null;
-								}
-							} else selectedCards.add(card);
-						}
-					}
-				}
-			});
-		}
-    }
-    
     private void drawBoard() {
     		JFrame frame = new JFrame(myName);
     		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    		frame.setSize(600, 600);
+    		frame.setSize(600, 670);
     		
     		JPanel view = new JPanel();
     		view.setBackground(BOARD_COLOR);

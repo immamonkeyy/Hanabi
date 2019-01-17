@@ -2,6 +2,8 @@ package client;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.LayoutManager;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,21 +18,40 @@ public class ClientPlayer {
 	private List<ClientCard> hand;
 	private ClientPlayer nextPlayer;
 	private String playerName;
-	private JPanel buttonPanel;
 	private boolean isMe;
+	
+	private JPanel playerPanel;
+	private JPanel buttonPanel;
+	private JPanel turnPanel;
+	private JPanel cardPanel;
+	
+	private Dimension buttonPanelPreferredSize;
 
-	public ClientPlayer(String name, boolean isMe, JPanel buttonPanel) {
+	public ClientPlayer(String name, boolean isMe, JPanel givenButtonPanel) {
 		playerName = name;
 		this.isMe = isMe;
 		hand = new ArrayList<ClientCard>();
 		
-		this.buttonPanel = buttonPanel;
-		this.buttonPanel.setOpaque(false);
-		this.buttonPanel.setVisible(false);
+		buttonPanel = givenButtonPanel;
+		
+		cardPanel = getInvisiblePanel(null);
+		
+		turnPanel = new JPanel(new BorderLayout());
+		turnPanel.add(new JLabel(playerName), BorderLayout.NORTH);
+		turnPanel.add(cardPanel, BorderLayout.CENTER);
+		turnPanel.setBackground(Color.GREEN);
+		
+		playerPanel = getInvisiblePanel(new BorderLayout());
+		playerPanel.add(turnPanel, BorderLayout.CENTER);
+		
+		String position = isMe ? BorderLayout.NORTH : BorderLayout.SOUTH;
+		playerPanel.add(buttonPanel, position);
 	}
 	
-	public void draw(Card card) {
-		hand.add(new ClientCard(card, hand.size()));
+	public ClientCard addCard(Card card) {
+		ClientCard c = new ClientCard(card, hand.size());
+		hand.add(c);
+		return c;
 	}
 
 	public void setNextPlayer(ClientPlayer p) {
@@ -54,37 +75,29 @@ public class ClientPlayer {
 	}
 	
 	public void buttonsVisible(boolean b) {
-		buttonPanel.setVisible(b);
+		if (buttonPanel.getHeight() == 0) return;
+		if (buttonPanelPreferredSize == null) {
+			buttonPanelPreferredSize = buttonPanel.getSize();
+			buttonPanel.setPreferredSize(buttonPanelPreferredSize);
+		}
+		
+		for (Component c : buttonPanel.getComponents()) c.setVisible(b);
 	}
 	
     public JPanel getPlayerPanel(boolean turn) {
-		JPanel playerPanel = getInvisiblePanel(new BorderLayout());
-		if (turn) {
-			playerPanel.setOpaque(true);
-			playerPanel.setBackground(Color.GREEN);
-		}
+		if (turn) turnPanel.setOpaque(true);
+		else turnPanel.setOpaque(false);
 		
-		playerPanel.add(new JLabel(playerName), BorderLayout.NORTH);
-		
-		JPanel cardPanel = getInvisiblePanel(null);
-		
+		cardPanel.removeAll();
 		boolean showCards = isMe ? false : true;
 	    	for (ClientCard card : hand) {
 	    		cardPanel.add(card);
-			card.display(showCards);
+			card.display(true);
 	    }
-    	
-		playerPanel.add(cardPanel, BorderLayout.CENTER);
+	    	cardPanel.revalidate();
+	    	cardPanel.repaint();
 		
-		if (!isMe) {
-			playerPanel.add(buttonPanel, BorderLayout.SOUTH);
-			return playerPanel;
-		}
-		
-		JPanel largerPanel = getInvisiblePanel(new BorderLayout());
-		largerPanel.add(playerPanel, BorderLayout.CENTER);
-		largerPanel.add(buttonPanel, BorderLayout.NORTH);
-		return largerPanel;
+		return playerPanel;
 	}
     
     private JPanel getInvisiblePanel(LayoutManager l) {

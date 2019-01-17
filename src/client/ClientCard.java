@@ -26,15 +26,20 @@ public class ClientCard extends JPanel {
 	
 	private HandCard card;
 	private boolean selected;
-	private boolean hasMouseListener; //fix this mess
 	private int position;
+	
+	private MouseListener mouseListener;
 	
 	public ClientCard(Card card, int pos) {
 		super();
 		this.card = new HandCard(card);
 		this.position = pos;
 		this.selected = false;
-		this.hasMouseListener = false;
+		
+		this.setPreferredSize(CARD_DIMENSION);
+		this.setBorder(new LineBorder(Color.WHITE, 5));
+		this.setBackground(Color.BLUE);
+		this.setLayout(new BorderLayout());
 	}
 	
 	public static JPanel getEmptySpot() {
@@ -56,23 +61,18 @@ public class ClientCard extends JPanel {
 		return card.toString();
 	}
 	
-	public void display() {
-		this.setPreferredSize(CARD_DIMENSION);
-		this.setBorder(new LineBorder(Color.WHITE, 5));
-		this.setBackground(Color.BLUE);
-		this.setLayout(new BorderLayout());
-	}
-	
-	public void click() {
-		Color c = selected ? Color.BLUE : Color.BLACK;
+	public void setSelected(boolean b) {
+		selected = b;
+		Color c = selected ? Color.BLACK : Color.BLUE;
 		this.setBackground(c);
-		selected = !selected;
 		this.repaint();
 	}
 	
-	public void display(boolean showFront) {
-		this.display();
-
+	public void click() {
+		setSelected(!selected);
+	}
+	
+	public void display(boolean showFront) {		
 		if (showFront) {
 			this.add(getNumberPanel(), BorderLayout.NORTH);
 			this.add(getNumberPanel(), BorderLayout.SOUTH);
@@ -135,9 +135,12 @@ public class ClientCard extends JPanel {
 	}
 	
 	public void addMouseListener(MouseListener m) {
-		if (!hasMouseListener) {
-			super.addMouseListener(m);
-			hasMouseListener = true;
-		}
+		super.addMouseListener(m);
+		mouseListener = m;
+	}
+	
+	public void removeMouseListener() {
+		super.removeMouseListener(mouseListener);
+		setSelected(false);
 	}
 }

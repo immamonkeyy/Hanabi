@@ -1,5 +1,6 @@
 package client;
 
+import java.awt.GridBagLayout;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,6 +21,7 @@ public class ClientBoard extends JPanel {
 	
 	public ClientBoard() {
 		super();
+		this.setLayout(new GridBagLayout());
 		this.setOpaque(false);
 				
 		remainingClues = 8;
@@ -31,12 +33,17 @@ public class ClientBoard extends JPanel {
 	
 	public void update() {
 		this.removeAll();
+		
+		JPanel p = new JPanel();
+		p.setOpaque(false);
+		this.add(p);
+		
 		for (CardColor color : CardColor.getAllColors(multicolor)) {
 			ClientCard card = played.get(color);
 			if (card != NOT_PLAYED) {
-				this.add(card);
+				p.add(card);
 				card.display(true);
-			} else this.add(ClientCard.getEmptySpot());
+			} else p.add(ClientCard.getEmptySpot());
 		}
 		this.revalidate();
 		this.repaint();
