@@ -21,6 +21,8 @@ public class ClientBoard extends JPanel {
 	
 	public ClientBoard() {
 		super();
+		
+		// GridBagLayout to be centered vertically
 		this.setLayout(new GridBagLayout());
 		this.setOpaque(false);
 				
@@ -31,20 +33,23 @@ public class ClientBoard extends JPanel {
 		discarded = new ColorMap<List<ClientCard>>(multicolor, () -> new ArrayList<ClientCard>());
 	}
 	
-	public void update() {
-		this.removeAll();
-		
+	public void update() {		
+		// FlowLayout for horizontal spaces between cards
 		JPanel p = new JPanel();
 		p.setOpaque(false);
-		this.add(p);
-		
+				
 		for (CardColor color : CardColor.getAllColors(multicolor)) {
 			ClientCard card = played.get(color);
-			if (card != NOT_PLAYED) {
+			if (card == NOT_PLAYED)
+				p.add(ClientCard.getEmptySpot());
+			else {
 				p.add(card);
 				card.display(true);
-			} else p.add(ClientCard.getEmptySpot());
+			}
 		}
+		
+		this.removeAll();
+		this.add(p);
 		this.revalidate();
 		this.repaint();
 	}

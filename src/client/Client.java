@@ -134,8 +134,14 @@ public class Client {
                 } else if(response.startsWith(Commands.NEXT_TURN)) {
                 		players.nextTurn();
                 		clearSelected();
-                		updateMyCards();
-                		updatePlayersCards();
+
+                		if (players.getTurn().getPlayerName().equals(myName)) {
+                			updatePlayersCards();
+                    		updateMyCards();
+                		} else {
+                			updateMyCards();
+                    		updatePlayersCards();
+                		}
                 }
             }
         }
@@ -232,8 +238,12 @@ public class Client {
 				}
 			}
 		});
-		if (playerName.equals(myName)) updateMyCards();
-		else updatePlayersCards();
+		if (playerName.equals(myName)) {
+			updateMyCards();
+		}
+		else {
+			updatePlayersCards();
+		}
     }
     
     private Card getCard(String cardStr) {
@@ -243,7 +253,8 @@ public class Client {
     }
     
     private void updatePlayersCards() {
-		playersCards.removeAll();
+//    		playersCards.setMinimumSize(playersCards.getSize());
+    		playersCards.removeAll();
 		
 		ClientPlayer me = players.get(myName);
 		ClientPlayer player = me;
@@ -263,7 +274,9 @@ public class Client {
     }
     
     private void updateMyCards() {
+    		//myCards.setMinimumSize(myCards.getSize());
     		myCards.removeAll();
+    		
     		myCards.add(getPlayerPanel(players.get(myName)));
     		players.get(myName).buttonsVisible(false);
     		myCards.revalidate();

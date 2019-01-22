@@ -110,7 +110,6 @@ public class ServerPlayer extends Thread {
 				} else if (command.startsWith(Commands.PLAY)) {
 					String position = command.substring(Commands.PLAY.length());
 					game.play(Integer.parseInt(position));
-					System.out.println("PLAYING " + position);
 					
 				} else if (command.startsWith(Commands.DISCARD)) {
 					String card = command.substring(Commands.DISCARD.length());

@@ -93,11 +93,15 @@ public class Hanabi {
 		for (int c = 0; c < cardsPerPlayer; c++) {
 			forEachPlayer(player -> {
 				draw(player);
-				try {
-					TimeUnit.MILLISECONDS.sleep(50);
-				} catch (InterruptedException e) { }
+				pause();
 			});
 		}
+	}
+	
+	private void pause() {
+		try {
+			TimeUnit.MILLISECONDS.sleep(50);
+		} catch (InterruptedException e) { }	
 	}
 	
 	public boolean isValidPlay(Card c) {
@@ -115,14 +119,16 @@ public class Hanabi {
 	public void play(int position) {
 		Card card = currentPlayer.getHand().remove(position).getCard();
 		
-		System.out.println(currentPlayer.getPlayerName() + " is playing card " + position + ", " + (isValidPlay(card) ? "VALID" : "NOT VALID"));
+		//System.out.println(currentPlayer.getPlayerName() + " is playing card " + position + ", " + (isValidPlay(card) ? "VALID" : "NOT VALID"));
 		
 		if (isValidPlay(card)) {
 			validPlay(position, card);
 		} else {
 			invalidPlay(position, card);
 		}
+		pause();
 		draw(currentPlayer);
+		pause();
 		nextTurn();
 	}
 	
@@ -132,8 +138,7 @@ public class Hanabi {
 	}
 	
 	private void invalidPlay(int position, Card card) {
-		List<Card> colorList = discarded.get(card.color());
-		colorList.add(card);
+		discarded.get(card.color()).add(card);
 		forEachPlayer(p -> p.invalidPlay(currentPlayer, position));
 		remainingFuckups--;
 		if (remainingFuckups == 0) {
