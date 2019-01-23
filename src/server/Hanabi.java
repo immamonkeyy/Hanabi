@@ -93,14 +93,14 @@ public class Hanabi {
 		for (int c = 0; c < cardsPerPlayer; c++) {
 			forEachPlayer(player -> {
 				draw(player);
-				pause();
+				pauseMillis(50);
 			});
 		}
 	}
 	
-	private void pause() {
+	private void pauseMillis(int m) {
 		try {
-			TimeUnit.MILLISECONDS.sleep(50);
+			TimeUnit.MILLISECONDS.sleep(m);
 		} catch (InterruptedException e) { }	
 	}
 	
@@ -126,9 +126,9 @@ public class Hanabi {
 		} else {
 			invalidPlay(position, card);
 		}
-		pause();
+		pauseMillis(500);
 		draw(currentPlayer);
-		pause();
+		pauseMillis(500);
 		nextTurn();
 	}
 	

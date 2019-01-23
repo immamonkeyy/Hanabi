@@ -17,11 +17,13 @@ public class ClientBoard extends JPanel {
 	private ColorMap<List<ClientCard>> discarded;
 	private static final ClientCard NOT_PLAYED = null;
 	
+	private JPanel cardPanel;
+	
 	private boolean multicolor = true;
 	
 	public ClientBoard() {
 		super();
-		
+
 		// GridBagLayout to be centered vertically
 		this.setLayout(new GridBagLayout());
 		this.setOpaque(false);
@@ -31,31 +33,22 @@ public class ClientBoard extends JPanel {
 		
 		played = new ColorMap<ClientCard>(multicolor, () -> NOT_PLAYED);
 		discarded = new ColorMap<List<ClientCard>>(multicolor, () -> new ArrayList<ClientCard>());
-	}
-	
-	public void update() {		
-		// FlowLayout for horizontal spaces between cards
-		JPanel p = new JPanel();
-		p.setOpaque(false);
-				
-		for (CardColor color : CardColor.getAllColors(multicolor)) {
-			ClientCard card = played.get(color);
-			if (card == NOT_PLAYED)
-				p.add(ClientCard.getEmptySpot());
-			else {
-				p.add(card);
-				card.display(true);
-			}
-		}
 		
-		this.removeAll();
-		this.add(p);
-		this.revalidate();
-		this.repaint();
+		cardPanel = Client.invisiblePanel();
+		for (CardColor c : played.keySet()) {
+			cardPanel.add(ClientCard.getEmptySpot());
+		}
+		this.add(cardPanel);
 	}
 	
-	public void validPlay(ClientCard c) {
-		played.put(c.color(), c);
+	public void validPlay(ClientCard card) {
+		played.put(card.color(), card);
+		int index = played.indexOf(card.color());
+		cardPanel.remove(index);
+		cardPanel.add(card, index);
+		card.display(true);
+		cardPanel.revalidate();
+		cardPanel.repaint();
 	}
 	
 	public void invalidPlay(ClientCard c) {

@@ -2,6 +2,7 @@ package client;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.FlowLayout;
+import java.awt.LayoutManager;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.BufferedReader;
@@ -65,19 +66,14 @@ public class Client {
         selectedPlayer = null;
         selectedCards = new ArrayList<ClientCard>();
         
-		playersCards = invisiblePanel();
+		playersCards = Client.invisiblePanel();
 		((FlowLayout)playersCards.getLayout()).setHgap(20);
 		
-		myCards = invisiblePanel();
+		myCards = Client.invisiblePanel();
 		
 		myName = null;
 		dialog = null;
 		board = new ClientBoard();
-	}
-	
-	public Client(String serverAddress, String name) throws Exception {
-        this(serverAddress);
-        myName = name;
 	}
 
     public void play() throws Exception {
@@ -117,7 +113,6 @@ public class Client {
                 		handleResponse(response, Commands.VALID_PLAY, (playerName, position) -> {
                 			ClientCard played = removePlayerCard(playerName, position);
                 			board.validPlay(played);
-                			board.update();
                 		});
             			
                 } else if(response.startsWith(Commands.INVALID_PLAY)) {
@@ -134,14 +129,6 @@ public class Client {
                 } else if(response.startsWith(Commands.NEXT_TURN)) {
                 		players.nextTurn();
                 		clearSelected();
-
-                		if (players.getTurn().getPlayerName().equals(myName)) {
-                			updatePlayersCards();
-                    		updateMyCards();
-                		} else {
-                			updateMyCards();
-                    		updatePlayersCards();
-                		}
                 }
             }
         }
@@ -169,7 +156,7 @@ public class Client {
     }
     
     private void addPlayer(String name) {
-    		JPanel buttonPanel = invisiblePanel();
+    		JPanel buttonPanel = Client.invisiblePanel();
     		boolean isMe = name.equals(myName);
     	
     		if (isMe) {
@@ -202,10 +189,9 @@ public class Client {
     }
     
     private ClientCard removePlayerCard(String playerName, String position) {
-		ClientCard card = players.get(playerName).removeCard(Integer.parseInt(position));
-		card.removeMouseListener();
-		if (playerName.equals(myName)) updateMyCards();
-		else updatePlayersCards();
+    		ClientPlayer player = players.get(playerName);
+		ClientCard card = player.removeCard(Integer.parseInt(position));
+		card.clean();
 		return card;
     }
     
@@ -238,12 +224,6 @@ public class Client {
 				}
 			}
 		});
-		if (playerName.equals(myName)) {
-			updateMyCards();
-		}
-		else {
-			updatePlayersCards();
-		}
     }
     
     private Card getCard(String cardStr) {
@@ -252,40 +232,28 @@ public class Client {
 		return new Card(CardColor.fromString(color), value);
     }
     
-    private void updatePlayersCards() {
-//    		playersCards.setMinimumSize(playersCards.getSize());
-    		playersCards.removeAll();
-		
-		ClientPlayer me = players.get(myName);
+    private void populateCards() {
+    		ClientPlayer me = players.get(myName);
+    		
+    		myCards.add(me.getPlayerPanel());
+    		me.buttonsVisible(false);
+    		myCards.revalidate();
+    		myCards.repaint();
+    		
 		ClientPlayer player = me;
 		while (!player.getNextPlayer().equals(me)) {
 			player = player.getNextPlayer();
-			playersCards.add(getPlayerPanel(player));
-			player.buttonsVisible(false);
+			playersCards.add(player.getPlayerPanel());
+			player.buttonsVisible(false); //TODO?
 		}
 
 		playersCards.revalidate();
 		playersCards.repaint();
     }
-    
-    private JPanel getPlayerPanel(ClientPlayer player) {
-    		boolean turn = players.getTurn().equals(player);
-    		return player.getPlayerPanel(turn);
-    }
-    
-    private void updateMyCards() {
-    		//myCards.setMinimumSize(myCards.getSize());
-    		myCards.removeAll();
-    		
-    		myCards.add(getPlayerPanel(players.get(myName)));
-    		players.get(myName).buttonsVisible(false);
-    		myCards.revalidate();
-    		myCards.repaint();
-    }
-    
+
     private boolean validClick(ClientPlayer player) {
     		// Not my turn
-    		if (!players.getTurn().getPlayerName().equals(myName))
+    		if (!players.isTurn(myName))
     			return false;
     		
     		// Already selected a different player first
@@ -310,12 +278,8 @@ public class Client {
     		view.add(board, BorderLayout.CENTER);
     		
     		frame.setVisible(true);
-    }
-    
-    private JPanel invisiblePanel() {
-		JPanel p = new JPanel();
-		p.setOpaque(false);
-		return p;
+    		
+    		populateCards();
     }
 
     private void closeDialog() {
@@ -362,17 +326,18 @@ public class Client {
     }
     
     public static void main(String[] args) throws Exception {
-        Client client;
-        
-        if (args.length == 1) {
-        		System.out.println("Starting client with name " + args[0]);
-        		client = new Client("localhost", args[0]);
-        }
-        else if (args.length == 2) {
-        		client = new Client(args[1], args[2]);
-        }
-        else client = new Client("localhost");
-        		
-        client.play();
+        new Client("localhost").play();
     }
+    
+    ////////////////////////////////////////////////////////////////
+    
+	public static JPanel invisiblePanel() {
+		return invisiblePanel(new FlowLayout());
+	}
+
+	public static JPanel invisiblePanel(LayoutManager layout) {
+		JPanel p = new JPanel(layout);
+		p.setOpaque(false);
+		return p;
+	}
 }

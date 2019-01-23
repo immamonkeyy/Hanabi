@@ -34,23 +34,34 @@ public class ClientPlayer {
 		
 		buttonPanel = givenButtonPanel;
 		
-		cardPanel = getInvisiblePanel(null);
+		cardPanel = Client.invisiblePanel();
 		
-		turnPanel = new JPanel(new BorderLayout());
+		turnPanel = Client.invisiblePanel(new BorderLayout());
 		turnPanel.add(new JLabel(playerName), BorderLayout.NORTH);
 		turnPanel.add(cardPanel, BorderLayout.CENTER);
 		turnPanel.setBackground(Color.GREEN);
 		
-		playerPanel = getInvisiblePanel(new BorderLayout());
+		playerPanel = Client.invisiblePanel(new BorderLayout());
 		playerPanel.add(turnPanel, BorderLayout.CENTER);
 		
-		String position = isMe ? BorderLayout.NORTH : BorderLayout.SOUTH;
-		playerPanel.add(buttonPanel, position);
+		String buttonPosition = isMe ? BorderLayout.NORTH : BorderLayout.SOUTH;
+		playerPanel.add(buttonPanel, buttonPosition);
 	}
 	
+	// ClientPlayer must instantiate the card to get its position
 	public ClientCard addCard(Card card) {
 		ClientCard c = new ClientCard(card, hand.size());
 		hand.add(c);
+		cardPanel.add(c);
+
+		buttonsVisible(false);
+
+		boolean showCards = true; //isMe ? false : true;
+		c.display(showCards);
+		
+		cardPanel.revalidate();
+		cardPanel.repaint();
+		
 		return c;
 	}
 
@@ -84,27 +95,14 @@ public class ClientPlayer {
 		for (Component c : buttonPanel.getComponents()) c.setVisible(b);
 	}
 	
-    public JPanel getPlayerPanel(boolean turn) {
+	public void highlight(boolean turn) {
 		if (turn) turnPanel.setOpaque(true);
 		else turnPanel.setOpaque(false);
-		
-		cardPanel.removeAll();
-		boolean showCards = isMe ? false : true;
-	    	for (ClientCard card : hand) {
-	    		cardPanel.add(card);
-			card.display(true);
-	    }
-	    	cardPanel.revalidate();
-	    	cardPanel.repaint();
-		
-		return playerPanel;
+		turnPanel.repaint();
 	}
     
-    private JPanel getInvisiblePanel(LayoutManager l) {
-		JPanel p = new JPanel();
-		p.setOpaque(false);
-		if (l != null) p.setLayout(l);
-		return p;
+    public JPanel getPlayerPanel() {
+    		return playerPanel;
     }
 
 	public ClientCard removeCard(int position) {
@@ -113,6 +111,11 @@ public class ClientPlayer {
 			if (c.getPosition() > position)
 				c.decrementPosition();
 		}
+		
+		cardPanel.remove(position);
+		cardPanel.revalidate();
+		cardPanel.repaint();
+		
 		return removed;
 	}
 

@@ -43,9 +43,8 @@ public class ClientCard extends JPanel {
 	}
 	
 	public static JPanel getEmptySpot() {
-		JPanel p = new JPanel();
+		JPanel p = Client.invisiblePanel();
 		p.setPreferredSize(CARD_DIMENSION);
-		p.setOpaque(false);
 		return p;
 	}
 	
@@ -83,13 +82,6 @@ public class ClientCard extends JPanel {
 		}
 	}
 	
-	private JPanel getPanel(LayoutManager layout) {
-		JPanel p = new JPanel();
-		p.setLayout(layout);
-		p.setOpaque(false);
-		return p;
-	}
-	
 	 /*
 	  *  ________
 	  * |5      5| <- getNumberPanel produces this horizontal panel
@@ -100,7 +92,7 @@ public class ClientCard extends JPanel {
 	  *  --------
 	  */
 	private JPanel getNumberPanel() {
-		JPanel panel = getPanel(new BorderLayout());
+		JPanel panel = Client.invisiblePanel(new BorderLayout());
 				
 		panel.add(getLabel(card.value() + "", 30), BorderLayout.WEST);
 		panel.add(getLabel(card.value() + "", 30), BorderLayout.EAST);
@@ -121,11 +113,11 @@ public class ClientCard extends JPanel {
 	
 	// This is the panel in the middle of the card with the "fireworks" on it
 	private JPanel getCenterPanel() {
-		JPanel panel = getPanel(new GridLayout(3, 3));
+		JPanel panel = Client.invisiblePanel(new GridLayout(3, 3));
 		panel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 		for (int i : CardColor.PATTERNS[card.value() - 1]) {
 			if (i == 1) {
-				JPanel p = getPanel(new GridBagLayout());
+				JPanel p = Client.invisiblePanel(new GridBagLayout());
 				p.add(getLabel("*", 75));
 				panel.add(p);
 			}
@@ -139,7 +131,7 @@ public class ClientCard extends JPanel {
 		mouseListener = m;
 	}
 	
-	public void removeMouseListener() {
+	public void clean() {
 		super.removeMouseListener(mouseListener);
 		setSelected(false);
 	}

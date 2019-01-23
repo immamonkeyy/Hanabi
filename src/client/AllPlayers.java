@@ -27,6 +27,7 @@ public class AllPlayers {
     public void startGame(String playerName) {
     		lastPlayerAdded.setNextPlayer(firstPlayerAdded);
     		turn = players.get(playerName);
+    		turn.highlight(true);
     }
     
     public Set<String> names() {
@@ -43,12 +44,14 @@ public class AllPlayers {
     		}
     }
     
-    public ClientPlayer getTurn() {
-    		return turn;
+    public boolean isTurn(String name) {
+    		return name.equals(turn.getPlayerName());
     }
     
     public void nextTurn() {
+    		turn.highlight(false);
     		turn = turn.getNextPlayer();
+		turn.highlight(true);
     }
 
 }
