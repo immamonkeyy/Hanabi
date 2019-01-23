@@ -54,6 +54,8 @@ public class Client {
 	private String myName;
 	private JDialog dialog;
 	private ClientBoard board;
+	
+	private boolean freeze;
     
     private static final Color BOARD_COLOR = new Color(0, 153, 0);
 	
@@ -74,6 +76,7 @@ public class Client {
 		myName = null;
 		dialog = null;
 		board = new ClientBoard();
+		freeze = false;
 	}
 
     public void play() throws Exception {
@@ -111,12 +114,14 @@ public class Client {
                 		
                 } else if(response.startsWith(Commands.VALID_PLAY)) {
                 		handleResponse(response, Commands.VALID_PLAY, (playerName, position) -> {
+                			freeze = true;
                 			ClientCard played = removePlayerCard(playerName, position);
                 			board.validPlay(played);
                 		});
             			
                 } else if(response.startsWith(Commands.INVALID_PLAY)) {
 	            		handleResponse(response, Commands.INVALID_PLAY, (playerName, position) -> {
+	            			freeze = true;
 	            			ClientCard played = removePlayerCard(playerName, position);
 	            			board.invalidPlay(played);
 	            		});
@@ -127,8 +132,8 @@ public class Client {
 	            		});
 	            		
                 } else if(response.startsWith(Commands.NEXT_TURN)) {
+                		freeze = false;
                 		players.nextTurn();
-                		clearSelected();
                 }
             }
         }
@@ -192,6 +197,7 @@ public class Client {
     		ClientPlayer player = players.get(playerName);
 		ClientCard card = player.removeCard(Integer.parseInt(position));
 		card.clean();
+		clearSelected();
 		return card;
     }
     
@@ -212,14 +218,17 @@ public class Client {
 							selectedCards.isEmpty() || // selected my own card, first one
 							selectedCards.contains(card)) { // deselected my own card
 						
-						card.click();
 						if (selectedCards.contains(card)) {
+							card.setSelected(false);
 							selectedCards.remove(card);
 							if (selectedCards.isEmpty()) {
 								selectedPlayer.buttonsVisible(false);
 								selectedPlayer = null;
 							}
-						} else selectedCards.add(card);
+						} else {
+							card.setSelected(true);
+							selectedCards.add(card);
+						}
 					}
 				}
 			}
@@ -236,7 +245,6 @@ public class Client {
     		ClientPlayer me = players.get(myName);
     		
     		myCards.add(me.getPlayerPanel());
-    		me.buttonsVisible(false);
     		myCards.revalidate();
     		myCards.repaint();
     		
@@ -244,7 +252,6 @@ public class Client {
 		while (!player.getNextPlayer().equals(me)) {
 			player = player.getNextPlayer();
 			playersCards.add(player.getPlayerPanel());
-			player.buttonsVisible(false); //TODO?
 		}
 
 		playersCards.revalidate();
@@ -252,6 +259,9 @@ public class Client {
     }
 
     private boolean validClick(ClientPlayer player) {
+    		// Board is frozen (in between turns)
+    		if (freeze) return false;
+    	
     		// Not my turn
     		if (!players.isTurn(myName))
     			return false;
@@ -268,9 +278,8 @@ public class Client {
     		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     		frame.setSize(600, 670);
     		
-    		JPanel view = new JPanel();
+    		JPanel view = new JPanel(new BorderLayout());
     		view.setBackground(BOARD_COLOR);
-    		view.setLayout(new BorderLayout());
     		frame.add(view);
     		
     		view.add(playersCards, BorderLayout.NORTH);

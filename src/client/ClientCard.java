@@ -67,10 +67,6 @@ public class ClientCard extends JPanel {
 		this.repaint();
 	}
 	
-	public void click() {
-		setSelected(!selected);
-	}
-	
 	public void display(boolean showFront) {		
 		if (showFront) {
 			this.add(getNumberPanel(), BorderLayout.NORTH);

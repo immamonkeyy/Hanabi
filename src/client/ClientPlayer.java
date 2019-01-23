@@ -3,8 +3,6 @@ package client;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.LayoutManager;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,17 +18,17 @@ public class ClientPlayer {
 	private String playerName;
 	private boolean isMe;
 	
-	private JPanel playerPanel;
 	private JPanel buttonPanel;
 	private JPanel turnPanel;
 	private JPanel cardPanel;
 	
-	private Dimension buttonPanelPreferredSize;
+	private boolean buttonPanelSizeSet;
 
 	public ClientPlayer(String name, boolean isMe, JPanel givenButtonPanel) {
 		playerName = name;
 		this.isMe = isMe;
 		hand = new ArrayList<ClientCard>();
+		buttonPanelSizeSet = false;
 		
 		buttonPanel = givenButtonPanel;
 		
@@ -40,12 +38,6 @@ public class ClientPlayer {
 		turnPanel.add(new JLabel(playerName), BorderLayout.NORTH);
 		turnPanel.add(cardPanel, BorderLayout.CENTER);
 		turnPanel.setBackground(Color.GREEN);
-		
-		playerPanel = Client.invisiblePanel(new BorderLayout());
-		playerPanel.add(turnPanel, BorderLayout.CENTER);
-		
-		String buttonPosition = isMe ? BorderLayout.NORTH : BorderLayout.SOUTH;
-		playerPanel.add(buttonPanel, buttonPosition);
 	}
 	
 	// ClientPlayer must instantiate the card to get its position
@@ -87,9 +79,8 @@ public class ClientPlayer {
 	
 	public void buttonsVisible(boolean b) {
 		if (buttonPanel.getHeight() == 0) return;
-		if (buttonPanelPreferredSize == null) {
-			buttonPanelPreferredSize = buttonPanel.getSize();
-			buttonPanel.setPreferredSize(buttonPanelPreferredSize);
+		for (; !buttonPanelSizeSet; buttonPanelSizeSet = true) {
+			buttonPanel.setPreferredSize(buttonPanel.getSize());
 		}
 		
 		for (Component c : buttonPanel.getComponents()) c.setVisible(b);
@@ -102,6 +93,11 @@ public class ClientPlayer {
 	}
     
     public JPanel getPlayerPanel() {
+		JPanel playerPanel = Client.invisiblePanel(new BorderLayout());
+		playerPanel.add(turnPanel, BorderLayout.CENTER);
+		
+		String buttonPosition = isMe ? BorderLayout.NORTH : BorderLayout.SOUTH;
+		playerPanel.add(buttonPanel, buttonPosition);
     		return playerPanel;
     }
 
