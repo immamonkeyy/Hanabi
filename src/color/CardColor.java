@@ -20,7 +20,7 @@ public abstract class CardColor {
 	public static final CardColor GREEN = new Green();
 	public static final CardColor BLUE = new Blue();
 	public static final CardColor WHITE = new White();
-	public static final CardColor MULTI = new Rainbow();
+	public static final CardColor MULTI = new Multicolor();
 	
 	private static final CardColor[] ALL_COLORS = new CardColor[] { RED, YELLOW, GREEN, BLUE, WHITE };
 	private static final CardColor[] ALL_COLORS_WITH_MULTI = new CardColor[] { RED, YELLOW, GREEN, BLUE, WHITE, MULTI };

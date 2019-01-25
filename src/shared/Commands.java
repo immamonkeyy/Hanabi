@@ -22,4 +22,5 @@ public class Commands {
 	public static final String INVALID_DISCARD = "INVALIDDISCARD ";
 	public static final String INVALID_CLUE = "INVALIDCLUE ";
 
+	public static final String FIREWORK_COMPLETE = "FIREWORKCOMPLETE ";
 }

@@ -8,6 +8,7 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
+import color.CardColor;
 import shared.Commands;
 import shared.HandCard;
 
@@ -84,6 +85,10 @@ public class ServerPlayer extends Thread {
 	
 	public void addExistingPlayer(String name) {
 		clientOut.println(Commands.ADD_EXISTING_PLAYER + name);
+	}
+	
+	public void fireworkComplete(CardColor color) {
+		clientOut.println(Commands.FIREWORK_COMPLETE + color);
 	}
 
 	public void run() {

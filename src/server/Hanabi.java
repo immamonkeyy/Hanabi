@@ -135,6 +135,10 @@ public class Hanabi {
 	private void validPlay(int position, Card card) {
 		played.put(card.color(), card);
 		forEachPlayer(p -> p.validPlay(currentPlayer, position));
+		
+		if (card.value() <= 5) {
+			forEachPlayer(p -> p.fireworkComplete(card.color()));
+		}
 	}
 	
 	private void invalidPlay(int position, Card card) {

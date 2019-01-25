@@ -5,7 +5,6 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
-import java.awt.LayoutManager;
 import java.awt.event.MouseListener;
 
 import javax.swing.BorderFactory;
@@ -45,6 +44,7 @@ public class ClientCard extends JPanel {
 	public static JPanel getEmptySpot() {
 		JPanel p = Client.invisiblePanel();
 		p.setPreferredSize(CARD_DIMENSION);
+		p.setBorder(new LineBorder(Color.BLACK, 1));
 		return p;
 	}
 	

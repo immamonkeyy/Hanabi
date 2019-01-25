@@ -1,25 +1,43 @@
 package client;
 
 import java.awt.GridBagLayout;
+import java.awt.Point;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 
 import color.CardColor;
 import server.ColorMap;
 
+@SuppressWarnings("serial")
 public class ClientBoard extends JPanel {
 	
 	private int remainingClues;
 	private int remainingFuckups;
-	private ColorMap<ClientCard> played;
+	private ColorMap<JPanel> played;
 	private ColorMap<List<ClientCard>> discarded;
-	private static final ClientCard NOT_PLAYED = null;
+	private Map<CardColor, Point> locations;
 	
 	private JPanel cardPanel;
 	
 	private boolean multicolor = true;
+	
+	public Point getLocation(CardColor c) {
+		return locations.get(c);
+	}
+	
+	public void saveCardLocationsRelativeTo(JPanel view) {
+		for (CardColor color : played.keySet()) {
+			JPanel card = played.get(color);
+			Point p = SwingUtilities.convertPoint(cardPanel, card.getLocation(), view); // top left corner
+			p.translate(card.getWidth() / 2, card.getHeight() / 2); // center of card
+			locations.put(color, p);
+		}
+	}
 	
 	public ClientBoard() {
 		super();
@@ -31,12 +49,13 @@ public class ClientBoard extends JPanel {
 		remainingClues = 8;
 		remainingFuckups = 3;
 		
-		played = new ColorMap<ClientCard>(multicolor, () -> NOT_PLAYED);
+		played = new ColorMap<JPanel>(multicolor, () -> ClientCard.getEmptySpot());
 		discarded = new ColorMap<List<ClientCard>>(multicolor, () -> new ArrayList<ClientCard>());
+		locations = new HashMap<CardColor, Point>();
 		
 		cardPanel = Client.invisiblePanel();
 		for (CardColor c : played.keySet()) {
-			cardPanel.add(ClientCard.getEmptySpot());
+			cardPanel.add(played.get(c));
 		}
 		this.add(cardPanel);
 	}

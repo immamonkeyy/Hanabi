@@ -3,16 +3,19 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.LayoutManager;
+import java.awt.Point;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.BufferedReader;
 
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.lang.reflect.InvocationTargetException;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -37,6 +40,9 @@ import shared.Commands;
  * -Whose turn it is, whose turn is next
  */
 
+
+//TODO: Let fireworks animations finish before card animations
+
 public class Client {
 	
     private static int PORT = 8901;
@@ -56,6 +62,8 @@ public class Client {
 	private ClientBoard board;
 	
 	private boolean freeze;
+	
+	private HanabiFireworksPanel fireworksPanel;
     
     private static final Color BOARD_COLOR = new Color(0, 153, 0);
 	
@@ -73,6 +81,8 @@ public class Client {
 		
 		myCards = Client.invisiblePanel();
 		
+		fireworksPanel = new HanabiFireworksPanel();
+		
 		myName = null;
 		dialog = null;
 		board = new ClientBoard();
@@ -85,56 +95,68 @@ public class Client {
             while (true) {
                 response = in.readLine();
                 if (response == null) continue;
-                else if (response.startsWith(Commands.ENTER_NAME)) {
-                		if (myName == null) myName = getName();
-                		if (myName == null) return;
-            			out.println(myName);
 
-                } else if (response.startsWith(Commands.ADD_EXISTING_PLAYER)) {
-            			String playerJoined = response.substring(Commands.ADD_EXISTING_PLAYER.length());
-            			addPlayer(playerJoined);
-            			
-                } else if (response.startsWith(Commands.PLAYER_JOINED)) {
-                		String playerJoined = response.substring(Commands.PLAYER_JOINED.length());                		
-                		addPlayer(playerJoined);
-                		chooseStartingPlayerThread();
-                		
-                } else if(response.startsWith(Commands.CHOOSE_STARTING_PLAYER)) {
-                		chooseStartingPlayerThread();
+                if (handleResponse(Commands.ENTER_NAME, response, () -> {
+	            		if (myName == null) myName = getName();
+	            		if (myName == null) return;
+	        			out.println(myName);
+                })) continue;
 
-                } else if (response.startsWith(Commands.START_GAME)) {
-                		String startingPlayer = response.substring(Commands.START_GAME.length());
-                		players.startGame(startingPlayer);
-                		closeDialog();
-                		SwingUtilities.invokeAndWait(new Runnable() {
-                			public void run() {
-                				drawBoard();
-                			}
-                		});
-                		
-                } else if(response.startsWith(Commands.VALID_PLAY)) {
-                		handleResponse(response, Commands.VALID_PLAY, (playerName, position) -> {
-                			freeze = true;
-                			ClientCard played = removePlayerCard(playerName, position);
-                			board.validPlay(played);
-                		});
-            			
-                } else if(response.startsWith(Commands.INVALID_PLAY)) {
-	            		handleResponse(response, Commands.INVALID_PLAY, (playerName, position) -> {
+                if (handleResponse(Commands.ADD_EXISTING_PLAYER, response, name -> {
+                		addPlayer(name);
+                })) continue;
+                
+                if (handleResponse(Commands.PLAYER_JOINED, response, name -> {
+	                	addPlayer(name);
+	                	introThread();
+                })) continue;
+                
+                if (handleResponse(Commands.CHOOSE_STARTING_PLAYER, response, () -> {
+                		introThread();
+                })) continue;
+                
+                if (handleResponse(Commands.START_GAME, response, startingPlayer -> {
+	                	players.startGame(startingPlayer);
+	                	closeDialog();
+	                	try {
+	                		SwingUtilities.invokeAndWait(() -> drawBoard());
+	                	} catch (InvocationTargetException | InterruptedException e) {
+	                		e.printStackTrace();
+	                	}
+                })) continue;
+                
+                if (handleResponse(Commands.VALID_PLAY, response, input -> {
+	                	handlePlayerCard(input, (playerName, position) -> {
+	            			freeze = true;
+	            			ClientCard played = removePlayerCard(playerName, position);
+	            			board.validPlay(played);
+	            		});
+                })) continue;
+                
+                if (handleResponse(Commands.INVALID_PLAY, response, input -> {
+	                handlePlayerCard(input, (playerName, position) -> {
 	            			freeze = true;
 	            			ClientCard played = removePlayerCard(playerName, position);
 	            			board.invalidPlay(played);
 	            		});
-                		
-                } else if (response.startsWith(Commands.DRAW_CARD)) {
-	            		handleResponse(response, Commands.DRAW_CARD, (playerName, cardStr) -> {
-	                		addPlayerCard(playerName, cardStr);
-	            		});
-	            		
-                } else if(response.startsWith(Commands.NEXT_TURN)) {
-                		freeze = false;
-                		players.nextTurn();
-                }
+                })) continue;
+
+                if (handleResponse(Commands.DRAW_CARD, response, input -> {
+                		handlePlayerCard(input, (playerName, cardStr) -> {
+                			addPlayerCard(playerName, cardStr);
+                		});
+                })) continue;
+
+                if (handleResponse(Commands.NEXT_TURN, response, () -> {
+	                freeze = false;
+	                players.nextTurn();
+                })) continue;
+                
+                if (handleResponse(Commands.FIREWORK_COMPLETE, response, input -> {
+		            CardColor color = CardColor.fromString(input);
+		            Point location = board.getLocation(color);
+		            fireworksPanel.fireworkComplete(location, color);
+                })) continue;
             }
         }
         finally {
@@ -142,22 +164,33 @@ public class Client {
         }
     }
     
-    private void clearSelected() {
-    		if (selectedPlayer != null) {
-	    		selectedPlayer.buttonsVisible(false);
-			selectedPlayer = null;
-			selectedCards.clear();
-    		}
+    private boolean handleResponse(String command, String response, Runnable handler) {
+    		if (!response.startsWith(command)) return false;
+    		handler.run();
+    		return true;
     }
     
-    //To handle responses like "COMMAND PlayerName:Value"
-    private void handleResponse(String response, String command, BiConsumer<String, String> handler) {
+    private boolean handleResponse(String command, String response, Consumer<String> handler) {
+    		if (!response.startsWith(command)) return false;
     		String input = response.substring(command.length());
+    		handler.accept(input);
+    		return true;
+    }
+    
+    //To handle responses like "PlayerName:Value"
+    private void handlePlayerCard(String input, BiConsumer<String, String> handler) {
     		int split = input.indexOf(':');
     		String playerName = input.substring(0, split);
     		String value = input.substring(split + 1);
-    		
     		handler.accept(playerName, value);
+    }
+    
+    private void clearSelected() {
+		if (selectedPlayer != null) {
+	    		selectedPlayer.buttonsVisible(false);
+			selectedPlayer = null;
+			selectedCards.clear();
+		}
     }
     
     private void addPlayer(String name) {
@@ -181,6 +214,16 @@ public class Client {
 
     		ClientPlayer player = new ClientPlayer(name, isMe, buttonPanel);
     		players.addPlayer(player);
+    }
+    
+    private void introThread() {
+    		if (players.names().size() == 1) {
+    			waitingForMorePlayersThread();
+    		} else chooseStartingPlayerThread();
+    }
+    
+    private void waitingForMorePlayersThread() {
+		new Thread(() -> waitingForMorePlayers()).start();
     }
     
     private void chooseStartingPlayerThread() {
@@ -274,41 +317,53 @@ public class Client {
     }
     
     private void drawBoard() {
-    		JFrame frame = new JFrame(myName);
-    		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    		frame.setSize(600, 670);
+    		JFrame window = new JFrame(myName);
+    		window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    		window.setSize(600, 670);
     		
     		JPanel view = new JPanel(new BorderLayout());
     		view.setBackground(BOARD_COLOR);
-    		frame.add(view);
+    		window.add(view);
     		
     		view.add(playersCards, BorderLayout.NORTH);
     		view.add(myCards, BorderLayout.SOUTH);
     		view.add(board, BorderLayout.CENTER);
     		
-    		frame.setVisible(true);
+    		JPanel glass = (JPanel) window.getGlassPane();
+    		glass.setLayout(new BorderLayout());
+    		glass.add(fireworksPanel, BorderLayout.CENTER);
+    		glass.setVisible(true);
+    		
+    		window.setVisible(true);
     		
     		populateCards();
+    		board.saveCardLocationsRelativeTo(view);
     }
 
     private void closeDialog() {
-		if (dialog != null) {
-			dialog.dispose();
-		}
+		if (dialog != null) dialog.dispose();
+    }
+    
+    private void waitingForMorePlayers() {
+    		closeDialog();
+    		String message = "Waiting for more players...";    		
+    		JOptionPane pane = new JOptionPane(message, JOptionPane.PLAIN_MESSAGE, JOptionPane.DEFAULT_OPTION, null, new Object[]{}, null);
+    		
+    		dialog = pane.createDialog(null, myName);
+    		
+    		pane.selectInitialValue();
+    		dialog.setVisible(true);
+    		dialog.dispose();
     }
     
     private String chooseStartingPlayer() {
     		closeDialog();
     		
-    		String names = "";
+    		String message = "Who is the most colorful? ";
     		for (String name : players.names()) {
-    			names += name + " ";
+    			message += name + " ";
     		}
-    	
-        return showInputDialog("Who is the most colorful? " + names);
-    }
-    
-    private String showInputDialog(String message) {
+    	        
         JOptionPane pane = new JOptionPane(message, JOptionPane.PLAIN_MESSAGE, JOptionPane.DEFAULT_OPTION);
 		pane.setWantsInput(true);
 		

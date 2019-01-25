@@ -79,6 +79,8 @@ public class ClientPlayer {
 	
 	public void buttonsVisible(boolean b) {
 		if (buttonPanel.getHeight() == 0) return;
+		
+		// For loop will only run on its first invokation, then never again
 		for (; !buttonPanelSizeSet; buttonPanelSizeSet = true) {
 			buttonPanel.setPreferredSize(buttonPanel.getSize());
 		}

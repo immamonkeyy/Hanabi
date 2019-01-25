@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.function.Supplier;
 
 import color.CardColor;
-import color.Rainbow;
+import color.Multicolor;
 
 @SuppressWarnings("serial")
 public class ColorMap<T> extends LinkedHashMap<CardColor, T> {
