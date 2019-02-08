@@ -41,6 +41,14 @@ public class ClientCard extends JPanel {
 		this.setLayout(new BorderLayout());
 	}
 	
+	public int getValue() {
+		return card.value();
+	}
+	
+	public CardColor getColor() {
+		return card.color();
+	}
+	
 	public static JPanel getEmptySpot() {
 		JPanel p = Client.invisiblePanel();
 		p.setPreferredSize(CARD_DIMENSION);

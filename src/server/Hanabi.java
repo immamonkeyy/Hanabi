@@ -119,8 +119,6 @@ public class Hanabi {
 	public void play(int position) {
 		Card card = currentPlayer.getHand().remove(position).getCard();
 		
-		//System.out.println(currentPlayer.getPlayerName() + " is playing card " + position + ", " + (isValidPlay(card) ? "VALID" : "NOT VALID"));
-		
 		if (isValidPlay(card)) {
 			validPlay(position, card);
 		} else {
@@ -130,6 +128,10 @@ public class Hanabi {
 		draw(currentPlayer);
 		pauseMillis(500);
 		nextTurn();
+	}
+	
+	public void clueTo(String playerName, String clue) {
+		
 	}
 	
 	private void validPlay(int position, Card card) {

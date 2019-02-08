@@ -15,34 +15,13 @@ import javax.swing.JPanel;
 
 import color.CardColor;
 
+// TODO: Fireworks at end are smaller/shorter?
+
 @SuppressWarnings("serial")
 public class HanabiFireworksPanel extends JPanel {
 	
 	private LinkedList<Spark> sparks;
 	private boolean paintSparks;
-	
-	private void explode(Point p, Color c, int delay) {
-		Random random = new Random();
-		
-		int sparkCount = 50 + random.nextInt(20);
-		long lifespan = 1000 + random.nextInt(1000);
-		
-		paintSparks = false;
-		for (int i = 0; i < sparkCount; i++)
-			sparks.add(new Spark(this, p, c, lifespan, delay));
-		paintSparks = true;
-	}
-	
-	public int sparksLeft() {
-		return sparks.size();
-	}
-	
-	public boolean removeSpark(Spark s) {
-		return sparks.remove(s);
-	}
-	
-	
-	//////////////////////////////////////////////////////////
 	
 	public HanabiFireworksPanel() {
 		super();
@@ -55,8 +34,6 @@ public class HanabiFireworksPanel extends JPanel {
 	public void fireworkComplete(Point location, CardColor color) {
 		int delay = 0;
 		int distance = 35;
-		
-		// TODO: Fireworks at end are smaller/shorter?
 		
 		List<Point> translator = Arrays.asList(
 				new Point(-1, -1), 
@@ -76,18 +53,24 @@ public class HanabiFireworksPanel extends JPanel {
 		triggerRepaint();
 	}
 	
+	private void explode(Point p, Color c, int delay) {
+		Random random = new Random();
+		
+		int sparkCount = 50 + random.nextInt(20);
+		long lifespan = 1000 + random.nextInt(1000);
+		
+		paintSparks = false;
+		for (int i = 0; i < sparkCount; i++)
+			sparks.add(new Spark(this, p, c, lifespan, delay));
+		paintSparks = true;
+	}
+	
 	private void triggerRepaint() {
 		repaint();
 		while (!sparks.isEmpty()) {
 			pauseMillis(33);
 			repaint();
 		}
-	}
-	
-	private void pauseMillis(int m) {
-		try {
-			TimeUnit.MILLISECONDS.sleep(m);
-		} catch (InterruptedException e) { }	
 	}
 	
 	@Override
@@ -103,5 +86,18 @@ public class HanabiFireworksPanel extends JPanel {
 			}
 		}
 	}
-
+	
+	public int sparksLeft() {
+		return sparks.size();
+	}
+	
+	public boolean removeSpark(Spark s) {
+		return sparks.remove(s);
+	}
+	
+	private void pauseMillis(int m) {
+		try {
+			TimeUnit.MILLISECONDS.sleep(m);
+		} catch (InterruptedException e) { }	
+	}
 }

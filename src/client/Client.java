@@ -1,6 +1,7 @@
 package client;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.LayoutManager;
 import java.awt.Point;
@@ -13,10 +14,15 @@ import java.io.PrintWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
+import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
@@ -209,11 +215,103 @@ public class Client {
     		} else {
     			JButton clue = new JButton("Give Clue");
     			buttonPanel.add(clue);
-    			clue.addActionListener(e -> out.println(Commands.CLUE + selectedPlayer));
+    			clue.addActionListener(e -> giveClue());
     		}
 
     		ClientPlayer player = new ClientPlayer(name, isMe, buttonPanel);
     		players.addPlayer(player);
+    }
+    
+    private void giveClue() {
+    		Set<String> possibleColors = new HashSet<>();
+    		Set<String> possibleValues = new HashSet<>();
+    		
+    		for (ClientCard c : selectedCards) {
+    			possibleValues.add(String.valueOf(c.getValue()));
+    			if (!c.getColor().equals(CardColor.MULTI)) {
+    				possibleColors.add(c.getColor().toString());
+    			}
+    		}
+    		
+    		if (possibleColors.size() > 1 && possibleValues.size() > 1) {
+    			showMessageDialog("Invalid card selection.");
+    			return;
+    		}
+    		
+    		List<String> options = new ArrayList<>();
+    		if (possibleValues.size() == 1) {
+    			options.addAll(possibleValues);
+    		}
+    		if (possibleColors.size() == 1) {
+    			options.addAll(possibleColors);
+    		}
+    		if (possibleColors.isEmpty()) { // all multicolor
+    			for (CardColor c : CardColor.getAllColors(false)) options.add(c.toString());
+    		}
+    		
+    		String defaultOption = null;
+    		if (options.size() > 1) {
+    			defaultOption = "Select a clue";
+    			options.add(0, defaultOption);
+    		}
+    		
+    		String clue;
+    		String message = "Give clue to "  + selectedPlayer + ":";
+    		boolean validClue = false;
+    		do {
+    			clue = (String) JOptionPane.showInputDialog(null, message, myName, JOptionPane.PLAIN_MESSAGE, 
+    					null, options.toArray(new String[options.size()]), defaultOption);
+    			
+    			if (clue == null) return; // user hit cancel
+    			
+        		if (clue.equals(defaultOption)) continue;
+        		if (!options.contains(clue.toLowerCase())) continue;
+        		if (nonComprehensiveClue(clue)) {
+        			showMessageDialog("Invalid card selection for clue \"" + clue + "\"");
+        			return;
+        		}
+        		
+        		validClue = true;
+    		} while (!validClue);
+    		
+    		out.println(Commands.CLUE + selectedPlayer + ":" + clue);
+    }
+    
+    // returns true if the clue applies to any non-selected cards
+    private boolean nonComprehensiveClue(String clue) {
+    		for (ClientCard c : selectedPlayer.getHand()) {
+    			
+			if (!selectedCards.contains(c)) { // non-selected card
+				
+				if (Character.isDigit(clue.charAt(0))) { // number clue
+					if (String.valueOf(c.getValue()).equals(clue)) return true;
+					
+				} else { // color clue
+					if (c.getColor() == CardColor.MULTI || c.getColor().toString().equals(clue)) return true;
+				}
+			}
+		}
+    		return false;
+    }
+    
+    private void showMessageDialog(String message) {
+		JOptionPane.showMessageDialog(null, message, myName, JOptionPane.PLAIN_MESSAGE, null);
+    }
+    
+    private boolean validClue(String clue, List<String> options, String defaultOption) {
+    		if (clue == null) return false;
+    		if (clue.equals(defaultOption)) return false;
+    		if (!options.contains(clue.toLowerCase())) return false;
+    		for (ClientCard c : selectedPlayer.getHand()) {
+    			if (!selectedCards.contains(c)) {
+    				if (c.getColor() == CardColor.MULTI 
+    						|| c.getColor().toString().equals(clue) 
+    						|| String.valueOf(c.getValue()).equals(clue)) {
+    					
+    				}
+    			}
+    		}
+    		return true;
     }
     
     private void introThread() {

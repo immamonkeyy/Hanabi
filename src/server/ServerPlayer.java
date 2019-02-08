@@ -90,6 +90,10 @@ public class ServerPlayer extends Thread {
 	public void fireworkComplete(CardColor color) {
 		clientOut.println(Commands.FIREWORK_COMPLETE + color);
 	}
+	
+	public void clueTo(String playerName, String clue) {
+		// TODO
+	}
 
 	public void run() {
 		try {
@@ -121,8 +125,12 @@ public class ServerPlayer extends Thread {
 					System.out.println("DISCARDING " + card);
 					
 				} else if (command.startsWith(Commands.CLUE)) {
-					String player = command.substring(Commands.CLUE.length());
-					System.out.println("CLUE to " + player);
+					String input = command.substring(Commands.CLUE.length());
+		    			int split = input.indexOf(':');
+		    			String playerName = input.substring(0, split);
+		    			String clue = input.substring(split + 1);
+		    			game.clueTo(playerName, clue);
+					System.out.println("CLUE to " + playerName + ": " + clue);
 				}
 
 			}
