@@ -53,5 +53,9 @@ public class AllPlayers {
     		turn = turn.getNextPlayer();
 		turn.highlight(true);
     }
+    
+    public ClientPlayer turn() {
+    		return turn;
+    }
 
 }

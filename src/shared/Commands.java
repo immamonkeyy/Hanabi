@@ -16,11 +16,10 @@ public class Commands {
 	
 	public static final String VALID_PLAY = "VALIDPLAY ";
 	public static final String VALID_DISCARD = "VALIDDISCARD ";
-	public static final String VALID_CLUE = "VALIDCLUE ";
 	
 	public static final String INVALID_PLAY = "INVALIDPLAY ";
 	public static final String INVALID_DISCARD = "INVALIDDISCARD ";
-	public static final String INVALID_CLUE = "INVALIDCLUE ";
 
 	public static final String FIREWORK_COMPLETE = "FIREWORKCOMPLETE ";
+	public static final String SET_MULTI = "SETMULTICOLOR ";
 }

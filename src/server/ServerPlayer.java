@@ -9,8 +9,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import color.CardColor;
+import shared.Card;
 import shared.Commands;
 import shared.HandCard;
+import shared.Util;
 
 public class ServerPlayer extends Thread {
 
@@ -22,7 +24,7 @@ public class ServerPlayer extends Thread {
 	
 	private List<HandCard> hand;
 	private ServerPlayer nextPlayer;
-	private String playerName;
+	private String myName;
 
 	public ServerPlayer(Socket socket, Hanabi game) throws ConnectException {
 		if (game.started()) {
@@ -47,7 +49,7 @@ public class ServerPlayer extends Thread {
 	}
 	
 	public void draw(ServerPlayer p, Card card) {
-		if (p == this) hand.add(new HandCard(card));
+		if (p == this) hand.add(new HandCard(card, game.multicolor()));
 		clientOut.println(Commands.DRAW_CARD + p.getPlayerName() + ":" + card.toString());
 	}
 
@@ -72,10 +74,11 @@ public class ServerPlayer extends Thread {
 	}
 
 	public String getPlayerName() {
-		return playerName;
+		return myName;
 	}
 
-	public void startGame(String startingPlayerName) {
+	public void startGame(String startingPlayerName, boolean multi) {
+		clientOut.println(Commands.SET_MULTI + multi);
 		clientOut.println(Commands.START_GAME + startingPlayerName);
 	}
 
@@ -92,7 +95,10 @@ public class ServerPlayer extends Thread {
 	}
 	
 	public void clueTo(String playerName, String clue) {
-		// TODO
+		if (playerName.equals(myName)) {
+			for (HandCard card : hand) card.addClue(clue);
+		}
+		clientOut.println(Commands.CLUE + playerName + ":" + clue);
 	}
 
 	public void run() {
@@ -101,7 +107,7 @@ public class ServerPlayer extends Thread {
 			boolean accepted = false;
 			while (!accepted) {
 				clientOut.println(Commands.ENTER_NAME);
-				playerName = clientIn.readLine();
+				myName = clientIn.readLine();
 				accepted = game.addPlayer(this);
 			}
 
@@ -109,30 +115,23 @@ public class ServerPlayer extends Thread {
 				String command = clientIn.readLine();
 				if (command == null) continue;
 				
-				else if (command.startsWith(Commands.CHOOSE_STARTING_PLAYER)) {
-					String startingPlayer = command.substring(Commands.CHOOSE_STARTING_PLAYER.length());
-					String correctedCase = game.getExistingName(startingPlayer); //null if player not found
-					if (correctedCase != null) {
-						game.startGame(correctedCase);
-					} else clientOut.println(Commands.CHOOSE_STARTING_PLAYER);
-					
-				} else if (command.startsWith(Commands.PLAY)) {
-					String position = command.substring(Commands.PLAY.length());
+                Util.handleResponse(Commands.CHOOSE_STARTING_PLAYER, command, startingPlayer -> {
+                		String correctedCase = game.getExistingName(startingPlayer); //null if player not found
+					if (correctedCase != null) game.startGame(correctedCase);
+					else clientOut.println(Commands.CHOOSE_STARTING_PLAYER);
+	            });
+                
+                Util.handleResponse(Commands.PLAY, command, position -> {
 					game.play(Integer.parseInt(position));
-					
-				} else if (command.startsWith(Commands.DISCARD)) {
-					String card = command.substring(Commands.DISCARD.length());
-					System.out.println("DISCARDING " + card);
-					
-				} else if (command.startsWith(Commands.CLUE)) {
-					String input = command.substring(Commands.CLUE.length());
-		    			int split = input.indexOf(':');
-		    			String playerName = input.substring(0, split);
-		    			String clue = input.substring(split + 1);
-		    			game.clueTo(playerName, clue);
-					System.out.println("CLUE to " + playerName + ": " + clue);
-				}
-
+	            });
+                
+                Util.handleResponse(Commands.DISCARD, command, card -> {
+                		System.out.println("DISCARDING " + card);
+	            });
+				
+                Util.handleResponse(Commands.CLUE, command, input -> {
+                		Util.handlePlayerCard(input, (playerName, clue) -> game.clueTo(playerName, clue));
+	            });
 			}
 
 
@@ -162,7 +161,7 @@ public class ServerPlayer extends Thread {
 		} catch (IOException e) {
 			System.out.println("Player died: " + e);
 		} finally {
-			try {socket.close();} catch (IOException e) {}
+			try { socket.close(); } catch (IOException e) { }
 		}
 	}
 

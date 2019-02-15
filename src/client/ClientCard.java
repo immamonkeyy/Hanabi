@@ -10,10 +10,12 @@ import java.awt.event.MouseListener;
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.border.Border;
+import javax.swing.border.CompoundBorder;
 import javax.swing.border.LineBorder;
 
 import color.CardColor;
-import server.Card;
+import shared.Card;
 import shared.HandCard;
 
 // Wrapper class for Card
@@ -29,24 +31,38 @@ public class ClientCard extends JPanel {
 	
 	private MouseListener mouseListener;
 	
-	public ClientCard(Card card, int pos) {
+	private static int BORDER_SIZE = 5;
+	private static int BORDER_OUTLINE_SIZE = 3;
+	
+	public ClientCard(Card card, int pos, boolean multi) {
 		super();
-		this.card = new HandCard(card);
+		this.card = new HandCard(card, multi);
 		this.position = pos;
 		this.selected = false;
 		
 		this.setPreferredSize(CARD_DIMENSION);
-		this.setBorder(new LineBorder(Color.WHITE, 5));
+		this.setBorder(normalBorder());
 		this.setBackground(Color.BLUE);
 		this.setLayout(new BorderLayout());
 	}
 	
-	public int getValue() {
+	public int value() {
 		return card.value();
 	}
 	
-	public CardColor getColor() {
+	public CardColor color() {
 		return card.color();
+	}
+	
+	public void addClue(String clue) {		
+		card.addClue(clue);
+		if (card.hasClues()) {
+			this.setBorder(clueBorder());
+		}
+	}
+	
+	public boolean matches(String clue) {
+		return card.matches(clue);
 	}
 	
 	public static JPanel getEmptySpot() {
@@ -77,6 +93,7 @@ public class ClientCard extends JPanel {
 	
 	public void display(boolean showFront) {		
 		if (showFront) {
+			this.removeAll();
 			this.add(getNumberPanel(), BorderLayout.NORTH);
 			this.add(getNumberPanel(), BorderLayout.SOUTH);
 		
@@ -101,10 +118,6 @@ public class ClientCard extends JPanel {
 		panel.add(getLabel(card.value() + "", 30), BorderLayout.WEST);
 		panel.add(getLabel(card.value() + "", 30), BorderLayout.EAST);
 		return panel;
-	}
-	
-	public CardColor color() {
-		return card.color();
 	}
 	
 	// Makes a text label and sets it to the card's color, with the corret font and stuff
@@ -137,6 +150,20 @@ public class ClientCard extends JPanel {
 	
 	public void clean() {
 		super.removeMouseListener(mouseListener);
-		setSelected(false);
+		this.setBorder(normalBorder());
+	}
+	
+	private Border normalBorder() {
+		return new LineBorder(Color.WHITE, BORDER_SIZE);
+	}
+	
+	private Border clueBorder() {
+		return new CompoundBorder(
+				matteBorder(BORDER_OUTLINE_SIZE, Color.BLACK), 
+				matteBorder(BORDER_SIZE, Color.WHITE));
+	}
+	
+	private Border matteBorder(int size, Color c) {
+		return BorderFactory.createMatteBorder(size, size, size, size, c);
 	}
 }

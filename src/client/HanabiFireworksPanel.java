@@ -79,7 +79,7 @@ public class HanabiFireworksPanel extends JPanel {
 		
 		if (paintSparks && !sparks.isEmpty()) {
 			Graphics2D g2d = (Graphics2D) g;
-			Spark[] array = sparks.toArray(new Spark[0]);
+			Spark[] array = sparks.toArray(new Spark[sparks.size()]);
 			
 			for(Spark s : array) {
 				s.draw(g2d);

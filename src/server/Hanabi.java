@@ -4,6 +4,9 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
+import shared.Card;
+import shared.ColorMap;
+
 public class Hanabi {
 	
 	private ServerPlayer currentPlayer;
@@ -17,13 +20,15 @@ public class Hanabi {
 	private int remainingClues;
 	private int remainingFuckups;
 	
+	private boolean multicolor;
+	
 	private static final Card NOT_PLAYED = null; // placeholder in Map before a color has been played
 	
-	public Hanabi() {
-		boolean multicolor = true;
+	public Hanabi(boolean multi) {	
+		multicolor = multi;
 		
 		players = new ArrayList<ServerPlayer>();
-		deck = new Deck(multicolor); // with rainbow
+		deck = new Deck(multicolor);
 		
 		played = new ColorMap<Card>(multicolor, () -> NOT_PLAYED);
 		discarded = new ColorMap<List<Card>>(multicolor, () -> new ArrayList<Card>());
@@ -31,6 +36,10 @@ public class Hanabi {
 		started = false;
 		remainingClues = 8;
 		remainingFuckups = 3;
+	}
+	
+	public boolean multicolor() {
+		return multicolor;
 	}
 	
 	// Get existing name that matches the given name, null if not found
@@ -76,7 +85,7 @@ public class Hanabi {
 		currentPlayer.setNextPlayer(players.get(0));
 		
 		for (ServerPlayer p : players) {
-			p.startGame(playerName);
+			p.startGame(playerName, multicolor);
 			if (playerName.equals(p.getPlayerName()))
 				currentPlayer = p;
 		}
@@ -131,7 +140,13 @@ public class Hanabi {
 	}
 	
 	public void clueTo(String playerName, String clue) {
+		if (remainingClues == 0) {
+			throw new RuntimeException("No clues to give!");
+		} else remainingClues--;
 		
+		forEachPlayer(p -> p.clueTo(playerName, clue));
+		pauseMillis(2000);
+		nextTurn();
 	}
 	
 	private void validPlay(int position, Card card) {

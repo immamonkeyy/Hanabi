@@ -1,4 +1,4 @@
-package server;
+package shared;
 
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.function.Supplier;
 
 import color.CardColor;
-import color.Multicolor;
 
 @SuppressWarnings("serial")
 public class ColorMap<T> extends LinkedHashMap<CardColor, T> {

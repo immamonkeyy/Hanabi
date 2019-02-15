@@ -3,8 +3,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import color.CardColor;
-import server.Card;
-import server.ColorMap;
 
 public class HandCard {
 
@@ -13,9 +11,8 @@ public class HandCard {
 	private boolean hasClues;
 	
 	private Card actualCard;
-	private boolean multicolor = true; // TODO
 	
-	public HandCard(Card card) {
+	public HandCard(Card card, boolean multicolor) {
 		possibleColors = new ColorMap<Boolean>(multicolor, () -> null);
 		
 		possibleValues = new HashMap<Integer, Boolean>();
@@ -26,6 +23,23 @@ public class HandCard {
 		hasClues = false;
 		
 		actualCard = card;
+	}
+
+	public boolean matches(String clue) {
+		return actualCard.matches(clue, (a, b) -> {}, (a, b) -> {});
+	}
+	
+	public void addClue(String clue) {
+		actualCard.matches(clue,
+				(i, target) -> recordClueGiven(possibleValues, i, target),
+				(c, target) -> recordClueGiven(possibleColors, c, target));
+	}
+	
+	// Will flip "hasClues" to true the first time this card
+	// is the target of a given clue.
+	public <T> void recordClueGiven(Map<T, Boolean> possiblesMap, T clue, boolean target) {
+		possiblesMap.put(clue, target);
+		hasClues = !hasClues && target;
 	}
 	
 	public boolean hasClues() {

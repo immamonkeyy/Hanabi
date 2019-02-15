@@ -9,7 +9,7 @@ import java.util.List;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-import server.Card;
+import shared.Card;
 
 public class ClientPlayer {
 	
@@ -23,12 +23,14 @@ public class ClientPlayer {
 	private JPanel cardPanel;
 	
 	private boolean buttonPanelSizeSet;
+	private boolean multicolor;
 
-	public ClientPlayer(String name, boolean isMe, JPanel givenButtonPanel) {
+	public ClientPlayer(String name, boolean isMe, JPanel givenButtonPanel, boolean multi) {
 		playerName = name;
 		this.isMe = isMe;
 		hand = new ArrayList<ClientCard>();
 		buttonPanelSizeSet = false;
+		multicolor = multi;
 		
 		buttonPanel = givenButtonPanel;
 		
@@ -42,7 +44,7 @@ public class ClientPlayer {
 	
 	// ClientPlayer must instantiate the card to get its position
 	public ClientCard addCard(Card card) {
-		ClientCard c = new ClientCard(card, hand.size());
+		ClientCard c = new ClientCard(card, hand.size(), multicolor);
 		hand.add(c);
 		cardPanel.add(c);
 
@@ -115,6 +117,12 @@ public class ClientPlayer {
 		cardPanel.repaint();
 		
 		return removed;
+	}
+
+	public void clueGiven(String clue) {
+		for (ClientCard card : hand) {
+			card.addClue(clue);
+		}
 	}
 
 }

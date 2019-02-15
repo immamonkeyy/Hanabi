@@ -2,8 +2,7 @@ package server;
 import java.util.Random;
 
 import color.CardColor;
-import color.*;
-
+import shared.Card;
 
 public class Deck {
 	

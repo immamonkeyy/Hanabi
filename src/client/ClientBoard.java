@@ -11,7 +11,7 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
 import color.CardColor;
-import server.ColorMap;
+import shared.ColorMap;
 
 @SuppressWarnings("serial")
 public class ClientBoard extends JPanel {
@@ -23,8 +23,6 @@ public class ClientBoard extends JPanel {
 	private Map<CardColor, Point> locations;
 	
 	private JPanel cardPanel;
-	
-	private boolean multicolor = true;
 	
 	public Point getLocation(CardColor c) {
 		return locations.get(c);
@@ -39,7 +37,7 @@ public class ClientBoard extends JPanel {
 		}
 	}
 	
-	public ClientBoard() {
+	public ClientBoard(boolean multicolor) {
 		super();
 
 		// GridBagLayout to be centered vertically

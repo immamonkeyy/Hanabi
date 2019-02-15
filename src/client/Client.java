@@ -1,7 +1,6 @@
 package client;
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.LayoutManager;
 import java.awt.Point;
@@ -14,15 +13,10 @@ import java.io.PrintWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 
-import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
@@ -31,8 +25,9 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
 import color.CardColor;
-import server.Card;
+import shared.Card;
 import shared.Commands;
+import shared.Util;
 
 /*
  * Client needs to know:
@@ -68,6 +63,7 @@ public class Client {
 	private ClientBoard board;
 	
 	private boolean freeze;
+	private boolean multicolor;
 	
 	private HanabiFireworksPanel fireworksPanel;
     
@@ -91,7 +87,6 @@ public class Client {
 		
 		myName = null;
 		dialog = null;
-		board = new ClientBoard();
 		freeze = false;
 	}
 
@@ -102,26 +97,30 @@ public class Client {
                 response = in.readLine();
                 if (response == null) continue;
 
-                if (handleResponse(Commands.ENTER_NAME, response, () -> {
+                Util.handleResponse(Commands.ENTER_NAME, response, () -> {
 	            		if (myName == null) myName = getName();
 	            		if (myName == null) return;
 	        			out.println(myName);
-                })) continue;
+                });
 
-                if (handleResponse(Commands.ADD_EXISTING_PLAYER, response, name -> {
+                Util.handleResponse(Commands.ADD_EXISTING_PLAYER, response, name -> {
                 		addPlayer(name);
-                })) continue;
+                });
                 
-                if (handleResponse(Commands.PLAYER_JOINED, response, name -> {
+                Util.handleResponse(Commands.PLAYER_JOINED, response, name -> {
 	                	addPlayer(name);
-	                	introThread();
-                })) continue;
+	                	intro();
+                });
                 
-                if (handleResponse(Commands.CHOOSE_STARTING_PLAYER, response, () -> {
-                		introThread();
-                })) continue;
+                Util.handleResponse(Commands.CHOOSE_STARTING_PLAYER, response, () -> {
+                		intro();
+                });
                 
-                if (handleResponse(Commands.START_GAME, response, startingPlayer -> {
+                Util.handleResponse(Commands.SET_MULTI, response, multi -> {
+                		multicolor = Boolean.parseBoolean(multi);
+                });
+                
+                Util.handleResponse(Commands.START_GAME, response, startingPlayer -> {
 	                	players.startGame(startingPlayer);
 	                	closeDialog();
 	                	try {
@@ -129,40 +128,51 @@ public class Client {
 	                	} catch (InvocationTargetException | InterruptedException e) {
 	                		e.printStackTrace();
 	                	}
-                })) continue;
+                });
                 
-                if (handleResponse(Commands.VALID_PLAY, response, input -> {
-	                	handlePlayerCard(input, (playerName, position) -> {
+                Util.handleResponse(Commands.VALID_PLAY, response, input -> {
+	                	Util.handlePlayerCard(input, (playerName, position) -> {
 	            			freeze = true;
 	            			ClientCard played = removePlayerCard(playerName, position);
 	            			board.validPlay(played);
 	            		});
-                })) continue;
+                });
                 
-                if (handleResponse(Commands.INVALID_PLAY, response, input -> {
-	                handlePlayerCard(input, (playerName, position) -> {
+                Util.handleResponse(Commands.INVALID_PLAY, response, input -> {
+	                Util.handlePlayerCard(input, (playerName, position) -> {
 	            			freeze = true;
 	            			ClientCard played = removePlayerCard(playerName, position);
 	            			board.invalidPlay(played);
 	            		});
-                })) continue;
+                });
 
-                if (handleResponse(Commands.DRAW_CARD, response, input -> {
-                		handlePlayerCard(input, (playerName, cardStr) -> {
+                Util.handleResponse(Commands.DRAW_CARD, response, input -> {
+                		Util.handlePlayerCard(input, (playerName, cardStr) -> {
                 			addPlayerCard(playerName, cardStr);
                 		});
-                })) continue;
+                });
 
-                if (handleResponse(Commands.NEXT_TURN, response, () -> {
+                Util.handleResponse(Commands.NEXT_TURN, response, () -> {
+                		closeDialog();
 	                freeze = false;
 	                players.nextTurn();
-                })) continue;
+                });
                 
-                if (handleResponse(Commands.FIREWORK_COMPLETE, response, input -> {
+                Util.handleResponse(Commands.FIREWORK_COMPLETE, response, input -> {
 		            CardColor color = CardColor.fromString(input);
 		            Point location = board.getLocation(color);
 		            fireworksPanel.fireworkComplete(location, color);
-                })) continue;
+                });
+                
+                Util.handleResponse(Commands.CLUE, response, input -> {
+	            		Util.handlePlayerCard(input, (playerName, clue) -> {
+	            			freeze = true;
+	            			board.useClue();
+	            			players.get(playerName).clueGiven(clue);
+	                		clearSelected();
+	            			announceClueGiven(playerName, clue);
+	            		});
+                });
             }
         }
         finally {
@@ -170,31 +180,19 @@ public class Client {
         }
     }
     
-    private boolean handleResponse(String command, String response, Runnable handler) {
-    		if (!response.startsWith(command)) return false;
-    		handler.run();
-    		return true;
-    }
-    
-    private boolean handleResponse(String command, String response, Consumer<String> handler) {
-    		if (!response.startsWith(command)) return false;
-    		String input = response.substring(command.length());
-    		handler.accept(input);
-    		return true;
-    }
-    
-    //To handle responses like "PlayerName:Value"
-    private void handlePlayerCard(String input, BiConsumer<String, String> handler) {
-    		int split = input.indexOf(':');
-    		String playerName = input.substring(0, split);
-    		String value = input.substring(split + 1);
-    		handler.accept(playerName, value);
+    private void announceClueGiven(String playerName, String clue) {
+    		String recipient = playerName.equals(myName) ? "you" : playerName;
+    		String message = players.turn().getPlayerName() + " told " + recipient + " about: " + clue.toUpperCase();
+    		showAutoCloseMessageDialog(message);
     }
     
     private void clearSelected() {
 		if (selectedPlayer != null) {
 	    		selectedPlayer.buttonsVisible(false);
 			selectedPlayer = null;
+			for (ClientCard c : selectedCards) {
+				c.setSelected(false);
+			}
 			selectedCards.clear();
 		}
     }
@@ -218,7 +216,7 @@ public class Client {
     			clue.addActionListener(e -> giveClue());
     		}
 
-    		ClientPlayer player = new ClientPlayer(name, isMe, buttonPanel);
+    		ClientPlayer player = new ClientPlayer(name, isMe, buttonPanel, multicolor);
     		players.addPlayer(player);
     }
     
@@ -227,9 +225,9 @@ public class Client {
     		Set<String> possibleValues = new HashSet<>();
     		
     		for (ClientCard c : selectedCards) {
-    			possibleValues.add(String.valueOf(c.getValue()));
-    			if (!c.getColor().equals(CardColor.MULTI)) {
-    				possibleColors.add(c.getColor().toString());
+    			possibleValues.add(String.valueOf(c.value()));
+    			if (c.color() != CardColor.MULTI) {
+    				possibleColors.add(c.color().toString());
     			}
     		}
     		
@@ -246,7 +244,9 @@ public class Client {
     			options.addAll(possibleColors);
     		}
     		if (possibleColors.isEmpty()) { // all multicolor
-    			for (CardColor c : CardColor.getAllColors(false)) options.add(c.toString());
+    			for (CardColor c : CardColor.getAllColors(false)) {
+    				options.add(c.toString());
+    			}
     		}
     		
     		String defaultOption = null;
@@ -279,17 +279,9 @@ public class Client {
     
     // returns true if the clue applies to any non-selected cards
     private boolean nonComprehensiveClue(String clue) {
-    		for (ClientCard c : selectedPlayer.getHand()) {
-    			
-			if (!selectedCards.contains(c)) { // non-selected card
-				
-				if (Character.isDigit(clue.charAt(0))) { // number clue
-					if (String.valueOf(c.getValue()).equals(clue)) return true;
-					
-				} else { // color clue
-					if (c.getColor() == CardColor.MULTI || c.getColor().toString().equals(clue)) return true;
-				}
-			}
+    		for (ClientCard card : selectedPlayer.getHand()) {	
+			if (!selectedCards.contains(card) && card.matches(clue))
+				return true;
 		}
     		return false;
     }
@@ -298,40 +290,20 @@ public class Client {
 		JOptionPane.showMessageDialog(null, message, myName, JOptionPane.PLAIN_MESSAGE, null);
     }
     
-    private boolean validClue(String clue, List<String> options, String defaultOption) {
-    		if (clue == null) return false;
-    		if (clue.equals(defaultOption)) return false;
-    		if (!options.contains(clue.toLowerCase())) return false;
-    		for (ClientCard c : selectedPlayer.getHand()) {
-    			if (!selectedCards.contains(c)) {
-    				if (c.getColor() == CardColor.MULTI 
-    						|| c.getColor().toString().equals(clue) 
-    						|| String.valueOf(c.getValue()).equals(clue)) {
-    					
-    				}
-    			}
-    		}
-    		return true;
-    }
-    
-    private void introThread() {
+    private void intro() {
     		if (players.names().size() == 1) {
-    			waitingForMorePlayersThread();
+    			showAutoCloseMessageDialog("Waiting for more players...");
     		} else chooseStartingPlayerThread();
     }
     
-    private void waitingForMorePlayersThread() {
-		new Thread(() -> waitingForMorePlayers()).start();
-    }
-    
     private void chooseStartingPlayerThread() {
-		new Thread(() -> {
+    		new Thread(() -> {
 			String startingPlayer = chooseStartingPlayer();
-
+	
 			if (startingPlayer != null) {
 				out.println(Commands.CHOOSE_STARTING_PLAYER + startingPlayer);
 			}
-		}).start();
+    		}).start();
     }
     
     private ClientCard removePlayerCard(String playerName, String position) {
@@ -419,6 +391,8 @@ public class Client {
     		window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     		window.setSize(600, 670);
     		
+    		board = new ClientBoard(multicolor);
+    		
     		JPanel view = new JPanel(new BorderLayout());
     		view.setBackground(BOARD_COLOR);
     		window.add(view);
@@ -442,16 +416,18 @@ public class Client {
 		if (dialog != null) dialog.dispose();
     }
     
-    private void waitingForMorePlayers() {
-    		closeDialog();
-    		String message = "Waiting for more players...";    		
-    		JOptionPane pane = new JOptionPane(message, JOptionPane.PLAIN_MESSAGE, JOptionPane.DEFAULT_OPTION, null, new Object[]{}, null);
-    		
-    		dialog = pane.createDialog(null, myName);
-    		
-    		pane.selectInitialValue();
-    		dialog.setVisible(true);
-    		dialog.dispose();
+    // Must be started in new thread in order to close
+    private void showAutoCloseMessageDialog(String message) {
+    		new Thread(() -> {
+			closeDialog();		
+			JOptionPane pane = new JOptionPane(message, JOptionPane.PLAIN_MESSAGE, JOptionPane.DEFAULT_OPTION, null, new Object[]{}, null);
+			
+			dialog = pane.createDialog(null, myName);
+			
+			pane.selectInitialValue();
+			dialog.setVisible(true);
+			dialog.dispose();
+    		}).start();
     }
     
     private String chooseStartingPlayer() {
@@ -476,6 +452,7 @@ public class Client {
 		if (value == JOptionPane.UNINITIALIZED_VALUE) {
 			return null;
 		}
+		
 		return (String) value;
     }
     
