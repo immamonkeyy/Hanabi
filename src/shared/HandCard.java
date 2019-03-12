@@ -31,15 +31,36 @@ public class HandCard {
 	}
 	
 	public boolean addClue(String clue) {
-		return actualCard.matches(clue, recordClueGiven(possibleValues), recordClueGiven(possibleColors));
+		return actualCard.matches(clue, recordValueClueGiven(), recordColorClueGiven());
 	}
 	
+	// Following two methods:
 	// Will flip "hasClues" to true the first time this card
 	// is the target of a given clue.
-	public <T> BiConsumer<T, Boolean> recordClueGiven(Map<T, Boolean> possiblesMap) {
-		return (clue, target) -> {
-			possiblesMap.put(clue, target);
+	
+	public BiConsumer<CardColor, Boolean> recordColorClueGiven() {
+		return (colorClue, target) -> {
+			possibleColors.put(colorClue, target);
 			hasClues = !hasClues && target;
+			if (possibleColors.containsValue(Boolean.TRUE) && possibleColors.containsValue(Boolean.FALSE)) {
+				for (CardColor c : possibleColors.keySet()) {
+					if (possibleColors.get(c) == null)
+						possibleColors.put(c, Boolean.FALSE);
+				}
+			}
+		};
+	}
+	
+	public BiConsumer<Integer, Boolean> recordValueClueGiven() {
+		return (valueClue, target) -> {
+			possibleValues.put(valueClue, target);
+			hasClues = !hasClues && target;
+			if (target) {
+				for (Integer v : possibleValues.keySet()) {
+					if (possibleValues.get(v) == null)
+						possibleValues.put(v, Boolean.FALSE);
+				}
+			}
 		};
 	}
 	

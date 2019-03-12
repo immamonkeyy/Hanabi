@@ -57,7 +57,7 @@ public class ClientCard extends JPanel {
 	
 	public void addClue(String clue, boolean isMe) {		
 		boolean target = card.addClue(clue);
-		if (cluePanel != null && !target) cluePanel.repopulate(); //eliminate Falses
+		if (cluePanel != null) cluePanel.repopulate();
 		if (!isMe && card.hasClues()) { // don't set border on your own cards
 			this.setBorder(clueBorder());
 		}
