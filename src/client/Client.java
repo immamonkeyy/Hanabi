@@ -2,7 +2,6 @@ package client;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.FlowLayout;
-import java.awt.LayoutManager;
 import java.awt.Point;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -43,6 +42,12 @@ import shared.Util;
 
 
 //TODO: Let fireworks animations finish before card animations
+//TODO: Write known clues on the back of cards, display clue info
+//TODO: Display deck of cards, available clues and fuck ups
+//TODO: Discard functionality
+//TODO: Displaying multi or maybe pictures for cards?
+
+//remove instead of line through
 
 public class Client {
 	
@@ -78,10 +83,10 @@ public class Client {
         selectedPlayer = null;
         selectedCards = new ArrayList<ClientCard>();
         
-		playersCards = Client.invisiblePanel();
+		playersCards = InvisiblePanel.create();
 		((FlowLayout)playersCards.getLayout()).setHgap(20);
 		
-		myCards = Client.invisiblePanel();
+		myCards = InvisiblePanel.create();
 		
 		fireworksPanel = new HanabiFireworksPanel();
 		
@@ -154,8 +159,9 @@ public class Client {
 
                 Util.handleResponse(Commands.NEXT_TURN, response, () -> {
                 		closeDialog();
-	                freeze = false;
-	                players.nextTurn();
+                		clearSelected();
+                		freeze = false;
+                		players.nextTurn();
                 });
                 
                 Util.handleResponse(Commands.FIREWORK_COMPLETE, response, input -> {
@@ -168,9 +174,9 @@ public class Client {
 	            		Util.handlePlayerCard(input, (playerName, clue) -> {
 	            			freeze = true;
 	            			board.useClue();
-	            			players.get(playerName).clueGiven(clue);
-	                		clearSelected();
+	            			selectedPlayer = players.get(playerName);
 	            			announceClueGiven(playerName, clue);
+	            			selectedPlayer.clueGiven(clue);
 	            		});
                 });
             }
@@ -188,17 +194,19 @@ public class Client {
     
     private void clearSelected() {
 		if (selectedPlayer != null) {
-	    		selectedPlayer.buttonsVisible(false);
-			selectedPlayer = null;
-			for (ClientCard c : selectedCards) {
+			// when clue was given, their selected cards won't be in the
+			// selectedCards list so we just deselect all the cards in their hand
+			for (ClientCard c : selectedPlayer.getHand()) {
 				c.setSelected(false);
 			}
+	    		selectedPlayer.buttonsVisible(false);
+			selectedPlayer = null;
 			selectedCards.clear();
 		}
     }
     
     private void addPlayer(String name) {
-    		JPanel buttonPanel = Client.invisiblePanel();
+    		JPanel buttonPanel = InvisiblePanel.create();
     		boolean isMe = name.equals(myName);
     	
     		if (isMe) {
@@ -307,10 +315,10 @@ public class Client {
     }
     
     private ClientCard removePlayerCard(String playerName, String position) {
+    		clearSelected();
     		ClientPlayer player = players.get(playerName);
 		ClientCard card = player.removeCard(Integer.parseInt(position));
 		card.clean();
-		clearSelected();
 		return card;
     }
     
@@ -373,7 +381,7 @@ public class Client {
 
     private boolean validClick(ClientPlayer player) {
     		// Board is frozen (in between turns)
-    		if (freeze) return false;
+    		if (freeze) return false; //TODO: Do I actually need this?
     	
     		// Not my turn
     		if (!players.isTurn(myName))
@@ -467,16 +475,4 @@ public class Client {
     public static void main(String[] args) throws Exception {
         new Client("localhost").play();
     }
-    
-    ////////////////////////////////////////////////////////////////
-    
-	public static JPanel invisiblePanel() {
-		return invisiblePanel(new FlowLayout());
-	}
-
-	public static JPanel invisiblePanel(LayoutManager layout) {
-		JPanel p = new JPanel(layout);
-		p.setOpaque(false);
-		return p;
-	}
 }

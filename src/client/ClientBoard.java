@@ -51,7 +51,7 @@ public class ClientBoard extends JPanel {
 		discarded = new ColorMap<List<ClientCard>>(multicolor, () -> new ArrayList<ClientCard>());
 		locations = new HashMap<CardColor, Point>();
 		
-		cardPanel = Client.invisiblePanel();
+		cardPanel = InvisiblePanel.create();
 		for (CardColor c : played.keySet()) {
 			cardPanel.add(played.get(c));
 		}

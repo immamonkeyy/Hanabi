@@ -34,17 +34,17 @@ public class Card {
 			BiConsumer<Integer, Boolean> handleValueClue, 
 			BiConsumer<CardColor, Boolean> handleColorClue) {
 		
-		boolean target;
+		boolean isTarget;
 		if (Character.isDigit(clue.charAt(0))) {
 			int i = Integer.parseInt(clue);
-			target = value() == i;
-			handleValueClue.accept(i, target);
+			isTarget = value() == i;
+			handleValueClue.accept(i, isTarget);
 		}
 		else {
 			CardColor c = CardColor.fromString(clue);
-			target = color().matchesColor(c);
-			handleColorClue.accept(c, target);
+			isTarget = color().matchesColor(c);
+			handleColorClue.accept(c, isTarget);
 		}
-		return target;
+		return isTarget;
 	}
 }

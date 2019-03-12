@@ -34,9 +34,9 @@ public class ClientPlayer {
 		
 		buttonPanel = givenButtonPanel;
 		
-		cardPanel = Client.invisiblePanel();
+		cardPanel = InvisiblePanel.create();
 		
-		turnPanel = Client.invisiblePanel(new BorderLayout());
+		turnPanel = InvisiblePanel.create(new BorderLayout());
 		turnPanel.add(new JLabel(playerName), BorderLayout.NORTH);
 		turnPanel.add(cardPanel, BorderLayout.CENTER);
 		turnPanel.setBackground(Color.GREEN);
@@ -50,7 +50,7 @@ public class ClientPlayer {
 
 		buttonsVisible(false);
 
-		boolean showCards = true; //isMe ? false : true;
+		boolean showCards = isMe ? false : true;
 		c.display(showCards);
 		
 		cardPanel.revalidate();
@@ -97,7 +97,7 @@ public class ClientPlayer {
 	}
     
     public JPanel getPlayerPanel() {
-		JPanel playerPanel = Client.invisiblePanel(new BorderLayout());
+		JPanel playerPanel = InvisiblePanel.create(new BorderLayout());
 		playerPanel.add(turnPanel, BorderLayout.CENTER);
 		
 		String buttonPosition = isMe ? BorderLayout.NORTH : BorderLayout.SOUTH;
@@ -121,7 +121,7 @@ public class ClientPlayer {
 
 	public void clueGiven(String clue) {
 		for (ClientCard card : hand) {
-			card.addClue(clue);
+			card.addClue(clue, isMe);
 		}
 	}
 

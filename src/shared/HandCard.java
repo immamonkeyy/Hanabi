@@ -1,6 +1,7 @@
 package shared;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.function.BiConsumer;
 
 import color.CardColor;
 
@@ -15,7 +16,7 @@ public class HandCard {
 	public HandCard(Card card, boolean multicolor) {
 		possibleColors = new ColorMap<Boolean>(multicolor, () -> null);
 		
-		possibleValues = new HashMap<Integer, Boolean>();
+		possibleValues = new LinkedHashMap<Integer, Boolean>();
 		for (int i = 1; i <= 5; i++) {
 			possibleValues.put(i, null);
 		}
@@ -29,17 +30,17 @@ public class HandCard {
 		return actualCard.matches(clue, (a, b) -> {}, (a, b) -> {});
 	}
 	
-	public void addClue(String clue) {
-		actualCard.matches(clue,
-				(i, target) -> recordClueGiven(possibleValues, i, target),
-				(c, target) -> recordClueGiven(possibleColors, c, target));
+	public boolean addClue(String clue) {
+		return actualCard.matches(clue, recordClueGiven(possibleValues), recordClueGiven(possibleColors));
 	}
 	
 	// Will flip "hasClues" to true the first time this card
 	// is the target of a given clue.
-	public <T> void recordClueGiven(Map<T, Boolean> possiblesMap, T clue, boolean target) {
-		possiblesMap.put(clue, target);
-		hasClues = !hasClues && target;
+	public <T> BiConsumer<T, Boolean> recordClueGiven(Map<T, Boolean> possiblesMap) {
+		return (clue, target) -> {
+			possiblesMap.put(clue, target);
+			hasClues = !hasClues && target;
+		};
 	}
 	
 	public boolean hasClues() {
@@ -60,5 +61,13 @@ public class HandCard {
 	
 	public CardColor color() {
 		return actualCard.color();
+	}
+	
+	public ColorMap<Boolean> getPossibleColors() {
+		return possibleColors;
+	}
+	
+	public Map<Integer, Boolean> getPossibleValues() {
+		return possibleValues;
 	}
 }

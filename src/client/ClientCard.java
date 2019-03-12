@@ -30,6 +30,7 @@ public class ClientCard extends JPanel {
 	private int position;
 	
 	private MouseListener mouseListener;
+	private CluePanel cluePanel;
 	
 	private static int BORDER_SIZE = 5;
 	private static int BORDER_OUTLINE_SIZE = 3;
@@ -54,11 +55,13 @@ public class ClientCard extends JPanel {
 		return card.color();
 	}
 	
-	public void addClue(String clue) {		
-		card.addClue(clue);
-		if (card.hasClues()) {
+	public void addClue(String clue, boolean isMe) {		
+		boolean target = card.addClue(clue);
+		if (cluePanel != null && !target) cluePanel.repopulate(); //eliminate Falses
+		if (!isMe && card.hasClues()) { // don't set border on your own cards
 			this.setBorder(clueBorder());
 		}
+		if (target) setSelected(true);
 	}
 	
 	public boolean matches(String clue) {
@@ -66,7 +69,7 @@ public class ClientCard extends JPanel {
 	}
 	
 	public static JPanel getEmptySpot() {
-		JPanel p = Client.invisiblePanel();
+		JPanel p = InvisiblePanel.create();
 		p.setPreferredSize(CARD_DIMENSION);
 		p.setBorder(new LineBorder(Color.BLACK, 1));
 		return p;
@@ -91,15 +94,16 @@ public class ClientCard extends JPanel {
 		this.repaint();
 	}
 	
-	public void display(boolean showFront) {		
+	public void display(boolean showFront) {	
+		this.removeAll();
 		if (showFront) {
-			this.removeAll();
+			this.setLayout(new BorderLayout());
 			this.add(getNumberPanel(), BorderLayout.NORTH);
 			this.add(getNumberPanel(), BorderLayout.SOUTH);
-		
-			this.add(getCenterPanel(), BorderLayout.CENTER);
+			this.add(getFrontCenterPanel(), BorderLayout.CENTER);
 		} else {
-			//TODO
+			cluePanel = new CluePanel(card);
+			this.add(cluePanel, BorderLayout.CENTER);
 		}
 	}
 	
@@ -113,15 +117,15 @@ public class ClientCard extends JPanel {
 	  *  --------
 	  */
 	private JPanel getNumberPanel() {
-		JPanel panel = Client.invisiblePanel(new BorderLayout());
+		JPanel panel = InvisiblePanel.create(new BorderLayout());
 				
-		panel.add(getLabel(card.value() + "", 30), BorderLayout.WEST);
-		panel.add(getLabel(card.value() + "", 30), BorderLayout.EAST);
+		panel.add(getCardLabel(card.value() + "", 30), BorderLayout.WEST);
+		panel.add(getCardLabel(card.value() + "", 30), BorderLayout.EAST);
 		return panel;
 	}
 	
 	// Makes a text label and sets it to the card's color, with the corret font and stuff
-	private JLabel getLabel(String text, int size) {
+	private JLabel getCardLabel(String text, int size) {
 		JLabel label = new JLabel(text);
 		label.setForeground(this.color().getColor());
 		label.setFont(new Font("Impact", Font.BOLD, size));
@@ -129,13 +133,13 @@ public class ClientCard extends JPanel {
 	}
 	
 	// This is the panel in the middle of the card with the "fireworks" on it
-	private JPanel getCenterPanel() {
-		JPanel panel = Client.invisiblePanel(new GridLayout(3, 3));
+	private JPanel getFrontCenterPanel() {
+		JPanel panel = InvisiblePanel.create(new GridLayout(3, 3));
 		panel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 		for (int i : CardColor.PATTERNS[card.value() - 1]) {
 			if (i == 1) {
-				JPanel p = Client.invisiblePanel(new GridBagLayout());
-				p.add(getLabel("*", 75));
+				JPanel p = InvisiblePanel.create(new GridBagLayout());
+				p.add(getCardLabel("*", 75));
 				panel.add(p);
 			}
 			else panel.add(new JLabel());
