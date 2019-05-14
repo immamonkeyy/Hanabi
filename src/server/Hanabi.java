@@ -134,6 +134,7 @@ public class Hanabi {
 	}
 	
 	public void discard(int position) {
+		remainingClues++; //TODO
 		Card card = currentPlayer.getHand().remove(position).getCard();
 		
 		discarded.get(card.color()).add(card);
