@@ -73,7 +73,10 @@ public class Client {
 	private ClientBoard board;
 	
 	private boolean freeze;
+	
 	private boolean multicolor;
+	private int clueCount;
+	private int fuckupCount;
 	
 	private HanabiFireworksPanel fireworksPanel;
     
@@ -128,6 +131,14 @@ public class Client {
                 
                 Util.handleResponse(Commands.SET_MULTI, response, multi -> {
                 		multicolor = Boolean.parseBoolean(multi);
+                });
+                
+                Util.handleResponse(Commands.SET_CLUES, response, clues -> {
+            			clueCount = Integer.parseInt(clues);
+                });
+                
+                Util.handleResponse(Commands.SET_FUCKUPS, response, fuckups -> {
+            			fuckupCount = Integer.parseInt(fuckups);
                 });
                 
                 Util.handleResponse(Commands.START_GAME, response, startingPlayer -> {
@@ -412,9 +423,9 @@ public class Client {
     private void drawBoard() {
     		JFrame window = new JFrame(myName);
     		window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    		window.setSize(760, 670);
+    		window.setSize(800, 670);
     		
-    		board = new ClientBoard(multicolor);
+    		board = new ClientBoard(multicolor, clueCount, fuckupCount);
     		
     		JPanel view = new JPanel(new BorderLayout());
     		view.setBackground(BOARD_COLOR);

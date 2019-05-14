@@ -25,7 +25,7 @@ public class Hanabi {
 	
 	private static final Card NOT_PLAYED = null; // placeholder in Map before a color has been played
 	
-	public Hanabi(boolean multi) {	
+	public Hanabi(boolean multi, int clues, int fuckups) {	
 		multicolor = multi;
 		
 		players = new ArrayList<ServerPlayer>();
@@ -35,8 +35,8 @@ public class Hanabi {
 		discarded = new ColorMap<List<Card>>(multicolor, () -> new ArrayList<Card>());
 		
 		started = false;
-		remainingClues = 8;
-		remainingFuckups = 3;
+		remainingClues = clues;
+		remainingFuckups = fuckups;
 	}
 	
 	public boolean multicolor() {
@@ -86,7 +86,7 @@ public class Hanabi {
 		currentPlayer.setNextPlayer(players.get(0));
 		
 		for (ServerPlayer p : players) {
-			p.startGame(playerName, multicolor);
+			p.startGame(playerName, multicolor, remainingClues, remainingFuckups);
 			if (playerName.equals(p.getPlayerName()))
 				currentPlayer = p;
 		}

@@ -17,7 +17,7 @@ public class DeckPanel extends JPanel {
 	private JLayeredPane layeredDeck;
 	private ClueToken[] clues;
 	
-	public DeckPanel(int clueCount) {
+	public DeckPanel(int clueCount, int fuckupCount) {
 		super(new GridBagLayout());
 		this.setOpaque(false);
 

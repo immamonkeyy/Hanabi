@@ -78,8 +78,10 @@ public class ServerPlayer extends Thread {
 		return myName;
 	}
 
-	public void startGame(String startingPlayerName, boolean multi) {
+	public void startGame(String startingPlayerName, boolean multi, int clues, int fuckups) {
 		clientOut.println(Commands.SET_MULTI + multi);
+		clientOut.println(Commands.SET_CLUES + clues);
+		clientOut.println(Commands.SET_FUCKUPS + fuckups);
 		clientOut.println(Commands.START_GAME + startingPlayerName);
 	}
 

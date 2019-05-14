@@ -15,9 +15,6 @@ import shared.ColorMap;
 @SuppressWarnings("serial")
 public class ClientBoard {
 
-	public final static int CLUE_COUNT = 20;
-	public final static int FUCK_UP_COUNT = 3;
-
 	private int remainingClues;
 	private int remainingFuckups;
 	private int remainingCards;
@@ -29,16 +26,16 @@ public class ClientBoard {
 	private DeckPanel deckPanel;
 	private PlayPanel playPanel;
 
-	public ClientBoard(boolean multicolor) {	
-		remainingClues = CLUE_COUNT;
-		remainingFuckups = FUCK_UP_COUNT;
+	public ClientBoard(boolean multicolor, int clueCount, int fuckupCount) {	
+		remainingClues = clueCount;
+		remainingFuckups = fuckupCount;
 
 		played = new ColorMap<JPanel>(multicolor, () -> ClientCard.getEmptySpot());
 		discarded = new ColorMap<List<ClientCard>>(multicolor, () -> new ArrayList<ClientCard>());
 		locations = new HashMap<CardColor, Point>();
 
 		playPanel = new PlayPanel(played);
-		deckPanel = new DeckPanel(CLUE_COUNT);
+		deckPanel = new DeckPanel(clueCount, fuckupCount);
 	}
 
 	public PlayPanel getPlayPanel() { return playPanel; }

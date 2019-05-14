@@ -12,8 +12,12 @@ public class Server {
         try (ServerSocket listener = new ServerSocket(PORT)) {
             System.out.println("Hanabi Server is Running");
 
-            boolean multicolor = true; // change it here if you wanna
-        		Hanabi game = new Hanabi(multicolor);
+            // change it all here if you wanna
+            boolean multicolor = true;
+            int clues = 50;
+            int fuckups = 3;
+            
+        		Hanabi game = new Hanabi(multicolor, clues, fuckups);
         		while (true) {
         			new ServerPlayer(listener.accept(), game).start();
         		}
