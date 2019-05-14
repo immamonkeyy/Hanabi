@@ -158,6 +158,16 @@ public class Client {
 	            		});
                 });
                 
+                Util.handleResponse(Commands.VALID_DISCARD, response, input -> {
+                	Util.handlePlayerCard(input, (playerName, position) -> {
+            			freeze = true;
+            			ClientCard played = removePlayerCard(playerName, position);
+            			String message = playerName + " discarded " + played.toMessageString();
+            			showAutoCloseMessageDialog(message);
+            			board.discard(played);
+            		});
+            });
+                
                 Util.handleResponse(Commands.INVALID_PLAY, response, input -> {
 	                Util.handlePlayerCard(input, (playerName, position) -> {
 	            			freeze = true;

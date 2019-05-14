@@ -133,6 +133,16 @@ public class Hanabi {
 		nextTurn(turnPause);
 	}
 	
+	public void discard(int position) {
+		Card card = currentPlayer.getHand().remove(position).getCard();
+		
+		discarded.get(card.color()).add(card);
+		forEachPlayer(p -> p.discard(currentPlayer, position));
+		
+		draw(currentPlayer, 500);
+		nextTurn(2000);
+	}
+	
 	public void clueTo(String playerName, String clue) {
 		if (remainingClues == 0) {
 			throw new RuntimeException("No clues to give!");

@@ -60,7 +60,9 @@ public class DeckPanel extends JPanel {
 	}
 
 	public void getAClueBack(int i) {
-		clues[i - 1].getBack();
+		if (i <= clues.length) {
+			clues[i - 1].getBack();
+		}
 	}
 	
 	private JPanel createTokenPanel(int maxHeight, Token[] tokens, Supplier<Token> gen) {

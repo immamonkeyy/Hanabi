@@ -63,6 +63,10 @@ public class ServerPlayer extends Thread {
 		clientOut.println(Commands.INVALID_PLAY + p.getPlayerName() + ":" + position);
 	}
 	
+	public void discard(ServerPlayer p, int position) {
+		clientOut.println(Commands.VALID_DISCARD + p.getPlayerName() + ":" + position);
+	}
+	
 	public void nextTurn() {
 		clientOut.println(Commands.NEXT_TURN);
 	}
@@ -129,8 +133,8 @@ public class ServerPlayer extends Thread {
 					game.play(Integer.parseInt(position));
 	            });
                 
-                Util.handleResponse(Commands.DISCARD, command, card -> {
-                		System.out.println("DISCARDING " + card);
+                Util.handleResponse(Commands.DISCARD, command, position -> {
+                		game.discard(Integer.parseInt(position));
 	            });
 				
                 Util.handleResponse(Commands.CLUE, command, input -> {

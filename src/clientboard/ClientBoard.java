@@ -78,6 +78,7 @@ public class ClientBoard {
 		deckPanel.useFuckup(remainingFuckups);
 	}
 
+	// TODO: Can't discard if clues full
 	public void discard(ClientCard c) {
 		discarded.get(c.color()).add(c);
 		remainingClues++;
