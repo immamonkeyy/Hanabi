@@ -22,4 +22,6 @@ public class Commands {
 
 	public static final String FIREWORK_COMPLETE = "FIREWORKCOMPLETE ";
 	public static final String SET_MULTI = "SETMULTICOLOR ";
+	
+	public static final String CARDS_LEFT = "CARDSLEFT ";
 }

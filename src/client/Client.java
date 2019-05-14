@@ -1,7 +1,9 @@
 package client;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.GridBagLayout;
 import java.awt.Point;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -19,10 +21,14 @@ import java.util.Set;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
+import javax.swing.JLayeredPane;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
+import clientboard.ClientBoard;
+import clientboard.ClientCard;
+import clientboard.HanabiFireworksPanel;
 import color.CardColor;
 import shared.Card;
 import shared.Commands;
@@ -40,14 +46,12 @@ import shared.Util;
  * -Whose turn it is, whose turn is next
  */
 
-
 //TODO: Let fireworks animations finish before card animations
-//TODO: Write known clues on the back of cards, display clue info
 //TODO: Display deck of cards, available clues and fuck ups
 //TODO: Discard functionality
 //TODO: Displaying multi or maybe pictures for cards?
-
-//remove instead of line through
+//TODO: If you resize the window, the fireworks animation is in the wrong spot :(
+//TODO: Set minimum size so can't resize too small
 
 public class Client {
 	
@@ -178,6 +182,11 @@ public class Client {
 	            			announceClueGiven(playerName, clue);
 	            			selectedPlayer.clueGiven(clue);
 	            		});
+                });
+                
+                Util.handleResponse(Commands.CARDS_LEFT, response, input -> {
+		            int cardsLeft = Integer.parseInt(input);
+		            //TODO: Update deck
                 });
             }
         }
@@ -397,7 +406,7 @@ public class Client {
     private void drawBoard() {
     		JFrame window = new JFrame(myName);
     		window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    		window.setSize(600, 670);
+    		window.setSize(760, 670);
     		
     		board = new ClientBoard(multicolor);
     		
@@ -408,6 +417,7 @@ public class Client {
     		view.add(playersCards, BorderLayout.NORTH);
     		view.add(myCards, BorderLayout.SOUTH);
     		view.add(board, BorderLayout.CENTER);
+    		view.add(getDeckPanel(), BorderLayout.WEST);
     		
     		JPanel glass = (JPanel) window.getGlassPane();
     		glass.setLayout(new BorderLayout());
@@ -418,6 +428,22 @@ public class Client {
     		
     		populateCards();
     		board.saveCardLocationsRelativeTo(view);
+    }
+    
+    private JPanel getDeckPanel() {
+    		JLayeredPane layer = new JLayeredPane();
+    		layer.setPreferredSize(new Dimension(130, 190));
+    		JPanel p = InvisiblePanel.create(new GridBagLayout());
+    		p.add(layer);
+    		Point o = new Point(0, 0);
+    		for (int i = 2; i >= 0; i--) {
+    			JPanel c = ClientCard.getBlankCard();
+    			o.x += 10;
+    			o.y += 10;    		
+    			c.setBounds(o.x, o.y, ClientCard.CARD_DIMENSION.width, ClientCard.CARD_DIMENSION.height);
+    			layer.add(c, Integer.valueOf(i));
+    		}
+    		return p;
     }
 
     private void closeDialog() {

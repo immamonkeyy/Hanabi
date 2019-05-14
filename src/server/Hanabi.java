@@ -189,5 +189,8 @@ public class Hanabi {
 	public boolean started() {
 		return started;
 	}
-
+	
+	public int cardsLeft() {
+		return deck.cardsLeft();
+	}
 }

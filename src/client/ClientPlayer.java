@@ -9,6 +9,7 @@ import java.util.List;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+import clientboard.ClientCard;
 import shared.Card;
 
 public class ClientPlayer {

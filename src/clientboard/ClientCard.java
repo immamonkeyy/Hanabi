@@ -1,4 +1,4 @@
-package client;
+package clientboard;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -14,6 +14,7 @@ import javax.swing.border.Border;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.LineBorder;
 
+import client.InvisiblePanel;
 import color.CardColor;
 import shared.Card;
 import shared.HandCard;
@@ -23,7 +24,11 @@ import shared.HandCard;
 @SuppressWarnings("serial")
 public class ClientCard extends JPanel {
 	
-	private static Dimension CARD_DIMENSION = new Dimension(90, 150);
+	private static int BORDER_SIZE = 5;
+	private static int BORDER_OUTLINE_SIZE = 3;
+	
+	public static final Dimension CARD_DIMENSION = new Dimension(90, 150);
+	private static Border NORMAL_BORDER = new LineBorder(Color.WHITE, BORDER_SIZE);
 	
 	private HandCard card;
 	private boolean selected;
@@ -32,9 +37,6 @@ public class ClientCard extends JPanel {
 	private MouseListener mouseListener;
 	private CluePanel cluePanel;
 	
-	private static int BORDER_SIZE = 5;
-	private static int BORDER_OUTLINE_SIZE = 3;
-	
 	public ClientCard(Card card, int pos, boolean multi) {
 		super();
 		this.card = new HandCard(card, multi);
@@ -42,7 +44,7 @@ public class ClientCard extends JPanel {
 		this.selected = false;
 		
 		this.setPreferredSize(CARD_DIMENSION);
-		this.setBorder(normalBorder());
+		this.setBorder(NORMAL_BORDER);
 		this.setBackground(Color.BLUE);
 		this.setLayout(new BorderLayout());
 	}
@@ -68,13 +70,6 @@ public class ClientCard extends JPanel {
 		return card.matches(clue);
 	}
 	
-	public static JPanel getEmptySpot() {
-		JPanel p = InvisiblePanel.create();
-		p.setPreferredSize(CARD_DIMENSION);
-		p.setBorder(new LineBorder(Color.BLACK, 1));
-		return p;
-	}
-	
 	public int getPosition() {
 		return position;
 	}
@@ -97,7 +92,6 @@ public class ClientCard extends JPanel {
 	public void display(boolean showFront) {	
 		this.removeAll();
 		if (showFront) {
-			this.setLayout(new BorderLayout());
 			this.add(getNumberPanel(), BorderLayout.NORTH);
 			this.add(getNumberPanel(), BorderLayout.SOUTH);
 			this.add(getFrontCenterPanel(), BorderLayout.CENTER);
@@ -154,11 +148,7 @@ public class ClientCard extends JPanel {
 	
 	public void clean() {
 		super.removeMouseListener(mouseListener);
-		this.setBorder(normalBorder());
-	}
-	
-	private Border normalBorder() {
-		return new LineBorder(Color.WHITE, BORDER_SIZE);
+		this.setBorder(NORMAL_BORDER);
 	}
 	
 	private Border clueBorder() {
@@ -169,5 +159,20 @@ public class ClientCard extends JPanel {
 	
 	private Border matteBorder(int size, Color c) {
 		return BorderFactory.createMatteBorder(size, size, size, size, c);
+	}
+	
+	public static JPanel getEmptySpot() {
+		JPanel p = InvisiblePanel.create();
+		p.setPreferredSize(CARD_DIMENSION);
+		p.setBorder(new LineBorder(Color.BLACK, 1));
+		return p;
+	}
+	
+	public static JPanel getBlankCard() {
+		JPanel p = new JPanel();
+		p.setPreferredSize(CARD_DIMENSION);
+		p.setBorder(NORMAL_BORDER);
+		p.setBackground(Color.BLUE);
+		return p;
 	}
 }

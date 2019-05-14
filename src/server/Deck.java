@@ -54,8 +54,13 @@ public class Deck {
 		return cards[next++];
 	}
 	
-	public boolean hasNext() {
-		return next < cards.length;
+	//I dont think this is used
+//	public boolean hasNext() {
+//		return next < cards.length;
+//	}
+	
+	public int cardsLeft() {
+		return cards.length - next;
 	}
 	
 	public void reset() {

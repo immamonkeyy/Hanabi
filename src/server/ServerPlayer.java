@@ -50,6 +50,7 @@ public class ServerPlayer extends Thread {
 	
 	public void draw(ServerPlayer p, Card card) {
 		if (p == this) hand.add(new HandCard(card, game.multicolor()));
+		clientOut.println(Commands.CARDS_LEFT + game.cardsLeft());
 		clientOut.println(Commands.DRAW_CARD + p.getPlayerName() + ":" + card.toString());
 	}
 

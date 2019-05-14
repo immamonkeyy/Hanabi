@@ -1,6 +1,7 @@
-package client;
+package clientboard;
 
 import java.awt.GridBagLayout;
+import java.awt.GridLayout;
 import java.awt.Point;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -10,8 +11,10 @@ import java.util.Map;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
+import client.InvisiblePanel;
 import color.CardColor;
 import shared.ColorMap;
+
 
 @SuppressWarnings("serial")
 public class ClientBoard extends JPanel {
