@@ -1,7 +1,5 @@
 package clientboard;
 
-import java.awt.GridBagLayout;
-import java.awt.GridLayout;
 import java.awt.Point;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -11,13 +9,11 @@ import java.util.Map;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
-import client.InvisiblePanel;
 import color.CardColor;
 import shared.ColorMap;
 
-
 @SuppressWarnings("serial")
-public class ClientBoard extends JPanel {
+public class ClientBoard {
 	
 	private int remainingClues;
 	private int remainingFuckups;
@@ -27,7 +23,23 @@ public class ClientBoard extends JPanel {
 	private ColorMap<List<ClientCard>> discarded;
 	private Map<CardColor, Point> locations;
 	
-	private JPanel cardPanel;
+	private DeckPanel deckPanel;
+	private PlayPanel playPanel;
+	
+	public ClientBoard(boolean multicolor) {	
+		remainingClues = 8;
+		remainingFuckups = 3;
+		
+		played = new ColorMap<JPanel>(multicolor, () -> ClientCard.getEmptySpot());
+		discarded = new ColorMap<List<ClientCard>>(multicolor, () -> new ArrayList<ClientCard>());
+		locations = new HashMap<CardColor, Point>();
+		
+		playPanel = new PlayPanel(played);
+		deckPanel = new DeckPanel();
+	}
+	
+	public PlayPanel getPlayPanel() { return playPanel; }
+	public DeckPanel getDeckPanel() { return deckPanel; }
 	
 	public Point getLocation(CardColor c) {
 		return locations.get(c);
@@ -36,46 +48,20 @@ public class ClientBoard extends JPanel {
 	public void saveCardLocationsRelativeTo(JPanel view) {
 		for (CardColor color : played.keySet()) {
 			JPanel card = played.get(color);
-			Point p = SwingUtilities.convertPoint(cardPanel, card.getLocation(), view); // top left corner
+			Point p = SwingUtilities.convertPoint(playPanel.getCardPanel(), card.getLocation(), view); // top left corner
 			p.translate(card.getWidth() / 2, card.getHeight() / 2); // center of card
 			locations.put(color, p);
 		}
 	}
 	
-	public ClientBoard(boolean multicolor) {
-		super();
-
-		// GridBagLayout to be centered vertically
-		this.setLayout(new GridBagLayout());
-		this.setOpaque(false);
-				
-		remainingClues = 8;
-		remainingFuckups = 3;
-		
-		played = new ColorMap<JPanel>(multicolor, () -> ClientCard.getEmptySpot());
-		discarded = new ColorMap<List<ClientCard>>(multicolor, () -> new ArrayList<ClientCard>());
-		locations = new HashMap<CardColor, Point>();
-		
-		cardPanel = InvisiblePanel.create();
-		for (CardColor c : played.keySet()) {
-			cardPanel.add(played.get(c));
-		}
-		this.add(cardPanel);
-	}
-	
 	public void validPlay(ClientCard card) {
 		played.put(card.color(), card);
 		int index = played.indexOf(card.color());
-		cardPanel.remove(index);
-		cardPanel.add(card, index);
-		card.display(true);
-		cardPanel.revalidate();
-		cardPanel.repaint();
+		playPanel.addCard(card, index);
 	}
 	
 	public void invalidPlay(ClientCard c) {
-		List<ClientCard> colorList = discarded.get(c.color());
-		colorList.add(c);
+		discarded.get(c.color()).add(c);
 		remainingFuckups--;
 	}
 	
@@ -89,7 +75,10 @@ public class ClientBoard extends JPanel {
 	}
 
 	public void setRemainingCards(int cardsLeft) {
-		remainingCards = cardsLeft;		
+		remainingCards = cardsLeft;
+        if (remainingCards < 3) {
+        		deckPanel.removeCard();
+        }
 	}
 
 }

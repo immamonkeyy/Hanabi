@@ -71,7 +71,6 @@ public class Client {
 	private String myName;
 	private JDialog dialog;
 	private ClientBoard board;
-	private DeckPanel deckPanel;
 	
 	private boolean freeze;
 	private boolean multicolor;
@@ -189,10 +188,6 @@ public class Client {
                 Util.handleResponse(Commands.CARDS_LEFT, response, input -> {
 		            int cardsLeft = Integer.parseInt(input);
 		            board.setRemainingCards(cardsLeft);
-		            // TODO: Have game do all logic for updating display
-		            if (cardsLeft < 3) {
-		            		deckPanel.removeCard();
-		            }
                 });
             }
         }
@@ -415,7 +410,6 @@ public class Client {
     		window.setSize(760, 670);
     		
     		board = new ClientBoard(multicolor);
-    		deckPanel = new DeckPanel();
     		
     		JPanel view = new JPanel(new BorderLayout());
     		view.setBackground(BOARD_COLOR);
@@ -423,8 +417,8 @@ public class Client {
     		
     		view.add(playersCards, BorderLayout.NORTH);
     		view.add(myCards, BorderLayout.SOUTH);
-    		view.add(board, BorderLayout.CENTER);
-    		view.add(deckPanel, BorderLayout.WEST);
+    		view.add(board.getPlayPanel(), BorderLayout.CENTER);
+    		view.add(board.getDeckPanel(), BorderLayout.WEST);
     		
     		JPanel glass = (JPanel) window.getGlassPane();
     		glass.setLayout(new BorderLayout());
