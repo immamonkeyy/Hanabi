@@ -1,9 +1,8 @@
 package client;
+
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.GridBagLayout;
 import java.awt.Point;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -21,14 +20,12 @@ import java.util.Set;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
-import javax.swing.JLayeredPane;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
 import clientboard.ClientBoard;
 import clientboard.ClientCard;
-import clientboard.DeckPanel;
 import clientboard.HanabiFireworksPanel;
 import color.CardColor;
 import shared.Card;
@@ -37,22 +34,23 @@ import shared.Util;
 
 /*
  * Client needs to know:
- * -How many clues there are left
+ * -How many clues there are left DONE
  * -How many fuckups there are left
- * -Opponents cards
- * -What opponents have been told
- * -State of fireworks
+ * -Opponents cards DONE
+ * -What opponents have been told NOT NEEDED
+ * -State of fireworks DONE
  * -What cards have been discarded (safe vs unsafe)
- * -What clues they know
- * -Whose turn it is, whose turn is next
+ * -What clues they know DONE
+ * -Whose turn it is, whose turn is next DONE
  */
 
 //TODO: Let fireworks animations finish before card animations
-//TODO: Display deck of cards, available clues and fuck ups
-//TODO: Discard functionality
+//TODO: Display fuck ups
+//TODO: Discard functionality (ability, clue back, see discards)
 //TODO: Displaying multi or maybe pictures for cards?
 //TODO: If you resize the window, the fireworks animation is in the wrong spot :(
 //TODO: Set minimum size so can't resize too small
+//TODO: Fix organization, this class is huge
 
 public class Client {
 	

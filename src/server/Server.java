@@ -1,4 +1,5 @@
 package server;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 
@@ -14,7 +15,7 @@ public class Server {
 
             // change it all here if you wanna
             boolean multicolor = true;
-            int clues = 50;
+            int clues = 8;
             int fuckups = 3;
             
         		Hanabi game = new Hanabi(multicolor, clues, fuckups);

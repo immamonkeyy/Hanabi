@@ -13,6 +13,7 @@ public class PlayPanel extends JPanel {
 	
 	private JPanel cardPanel;
 	
+	// TODO: Two rows of play cards?
 	public PlayPanel(ColorMap<JPanel> played) {
 		super();
 

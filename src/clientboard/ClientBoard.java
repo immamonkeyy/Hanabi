@@ -12,7 +12,6 @@ import javax.swing.SwingUtilities;
 import color.CardColor;
 import shared.ColorMap;
 
-@SuppressWarnings("serial")
 public class ClientBoard {
 
 	private int remainingClues;
@@ -84,5 +83,4 @@ public class ClientBoard {
 		remainingCards = cardsLeft;
         deckPanel.remainingCards(cardsLeft);
 	}
-
 }
