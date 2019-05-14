@@ -6,6 +6,7 @@ import java.util.function.Consumer;
 
 import shared.Card;
 import shared.ColorMap;
+import shared.Util;
 
 public class Hanabi {
 	
@@ -102,15 +103,9 @@ public class Hanabi {
 		for (int c = 0; c < cardsPerPlayer; c++) {
 			forEachPlayer(player -> {
 				draw(player);
-				pauseMillis(50);
+				Util.pauseMillis(50);
 			});
 		}
-	}
-	
-	private void pauseMillis(int m) {
-		try {
-			TimeUnit.MILLISECONDS.sleep(m);
-		} catch (InterruptedException e) { }	
 	}
 	
 	public boolean isValidPlay(Card c) {
@@ -133,9 +128,9 @@ public class Hanabi {
 		} else {
 			invalidPlay(position, card);
 		}
-		pauseMillis(500);
+		Util.pauseMillis(500);
 		draw(currentPlayer);
-		pauseMillis(500);
+		Util.pauseMillis(500);
 		nextTurn();
 	}
 	
@@ -145,7 +140,7 @@ public class Hanabi {
 		} else remainingClues--;
 		
 		forEachPlayer(p -> p.clueTo(playerName, clue));
-		pauseMillis(2000);
+		Util.pauseMillis(2000);
 		nextTurn();
 	}
 	

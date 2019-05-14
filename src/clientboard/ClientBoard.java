@@ -14,37 +14,40 @@ import shared.ColorMap;
 
 @SuppressWarnings("serial")
 public class ClientBoard {
-	
+
+	public final static int CLUE_COUNT = 20;
+	public final static int FUCK_UP_COUNT = 3;
+
 	private int remainingClues;
 	private int remainingFuckups;
 	private int remainingCards;
-	
+
 	private ColorMap<JPanel> played;
 	private ColorMap<List<ClientCard>> discarded;
 	private Map<CardColor, Point> locations;
-	
+
 	private DeckPanel deckPanel;
 	private PlayPanel playPanel;
-	
+
 	public ClientBoard(boolean multicolor) {	
-		remainingClues = 8;
-		remainingFuckups = 3;
-		
+		remainingClues = CLUE_COUNT;
+		remainingFuckups = FUCK_UP_COUNT;
+
 		played = new ColorMap<JPanel>(multicolor, () -> ClientCard.getEmptySpot());
 		discarded = new ColorMap<List<ClientCard>>(multicolor, () -> new ArrayList<ClientCard>());
 		locations = new HashMap<CardColor, Point>();
-		
+
 		playPanel = new PlayPanel(played);
-		deckPanel = new DeckPanel();
+		deckPanel = new DeckPanel(CLUE_COUNT);
 	}
-	
+
 	public PlayPanel getPlayPanel() { return playPanel; }
 	public DeckPanel getDeckPanel() { return deckPanel; }
-	
+
 	public Point getLocation(CardColor c) {
 		return locations.get(c);
 	}
-	
+
 	public void saveCardLocationsRelativeTo(JPanel view) {
 		for (CardColor color : played.keySet()) {
 			JPanel card = played.get(color);
@@ -53,32 +56,36 @@ public class ClientBoard {
 			locations.put(color, p);
 		}
 	}
-	
+
 	public void validPlay(ClientCard card) {
 		played.put(card.color(), card);
 		int index = played.indexOf(card.color());
 		playPanel.addCard(card, index);
 	}
-	
+
 	public void invalidPlay(ClientCard c) {
 		discarded.get(c.color()).add(c);
 		remainingFuckups--;
 	}
-	
+
 	public void discard(ClientCard c) {
 		discarded.get(c.color()).add(c);
 		remainingClues++;
+		deckPanel.getAClueBack(remainingClues);
 	}
-	
+
 	public void useClue() {
 		remainingClues--;
+		deckPanel.useClue(remainingClues);
+	}
+
+	public boolean hasClues() {
+		return remainingClues > 0;
 	}
 
 	public void setRemainingCards(int cardsLeft) {
 		remainingCards = cardsLeft;
-        if (remainingCards < 3) {
-        		deckPanel.removeCard();
-        }
+        deckPanel.remainingCards(cardsLeft);
 	}
 
 }

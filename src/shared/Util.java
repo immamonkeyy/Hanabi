@@ -1,5 +1,6 @@
 package shared;
 
+import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -21,4 +22,9 @@ public class Util {
     		handler.accept(playerName, value);
     }
 
+	public static void pauseMillis(int m) {
+		try {
+			TimeUnit.MILLISECONDS.sleep(m);
+		} catch (InterruptedException e) { }
+	}
 }

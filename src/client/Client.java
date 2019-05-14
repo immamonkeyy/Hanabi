@@ -340,6 +340,11 @@ public class Client {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				if (validClick(player)) {
+					if (!players.get(myName).equals(selectedPlayer) && !board.hasClues()) {
+						showTimedCloseMessageDialog("No clues to give!");
+						return;
+					}
+
 					if (selectedPlayer == null) {
 						selectedPlayer = player;
 						selectedPlayer.buttonsVisible(true);
@@ -438,14 +443,21 @@ public class Client {
     // Must be started in new thread in order to close
     private void showAutoCloseMessageDialog(String message) {
     		new Thread(() -> {
-			closeDialog();		
+			closeDialog();
 			JOptionPane pane = new JOptionPane(message, JOptionPane.PLAIN_MESSAGE, JOptionPane.DEFAULT_OPTION, null, new Object[]{}, null);
 			
 			dialog = pane.createDialog(null, myName);
-			
 			pane.selectInitialValue();
+			
 			dialog.setVisible(true);
-			dialog.dispose();
+    		}).start();
+    }
+    
+    private void showTimedCloseMessageDialog(String message) {
+    		showAutoCloseMessageDialog(message);
+    		new Thread(() -> {
+    			Util.pauseMillis(800);
+    			closeDialog();
     		}).start();
     }
     
