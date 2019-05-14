@@ -48,7 +48,11 @@ public class DeckPanel extends JPanel {
 		
 		deckAndTokens.add(createTokenPanel(10, clues, () -> new ClueToken()), BorderLayout.WEST);
 		deckAndTokens.add(layeredDeck, BorderLayout.CENTER);
-		deckAndTokens.add(createTokenPanel(4, fuckups, () -> new FuckupToken()), BorderLayout.EAST);
+		deckAndTokens.add(createTokenPanel(10, fuckups, () -> new FuckupToken()), BorderLayout.EAST);
+	}
+	
+	public void useFuckup(int i) {
+		fuckups[i].use();
 	}
 
 	public void useClue(int i) {

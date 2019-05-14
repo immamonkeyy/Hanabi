@@ -101,8 +101,7 @@ public class Hanabi {
 		
 		for (int c = 0; c < cardsPerPlayer; c++) {
 			forEachPlayer(player -> {
-				draw(player);
-				Util.pauseMillis(50);
+				draw(player, 50);
 			});
 		}
 	}
@@ -122,15 +121,16 @@ public class Hanabi {
 	public void play(int position) {
 		Card card = currentPlayer.getHand().remove(position).getCard();
 		
+		int turnPause = 500;
 		if (isValidPlay(card)) {
 			validPlay(position, card);
 		} else {
 			invalidPlay(position, card);
+			turnPause = 2000;
 		}
-		Util.pauseMillis(500);
-		draw(currentPlayer);
-		Util.pauseMillis(500);
-		nextTurn();
+		
+		draw(currentPlayer, 500);
+		nextTurn(turnPause);
 	}
 	
 	public void clueTo(String playerName, String clue) {
@@ -139,8 +139,7 @@ public class Hanabi {
 		} else remainingClues--;
 		
 		forEachPlayer(p -> p.clueTo(playerName, clue));
-		Util.pauseMillis(2000);
-		nextTurn();
+		nextTurn(2000);
 	}
 	
 	private void validPlay(int position, Card card) {
@@ -158,15 +157,18 @@ public class Hanabi {
 		remainingFuckups--;
 		if (remainingFuckups == 0) {
 			// GAME OVER! YOU SUCK
+			System.out.println("Game over. You suck.");
 		}
 	}
 	
-	private void nextTurn() {
+	private void nextTurn(int pauseMillis) {
+		Util.pauseMillis(pauseMillis);
 		currentPlayer = currentPlayer.getNextPlayer();
 		forEachPlayer(p -> p.nextTurn());
 	}
 	
-	private void draw(ServerPlayer player) {
+	private void draw(ServerPlayer player, int pauseMillis) {
+		Util.pauseMillis(pauseMillis);
 		Card card = deck.draw();
 		forEachPlayer(p -> p.draw(player, card));
 	}

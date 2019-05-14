@@ -24,6 +24,8 @@ public class ClientBoard {
 
 	private DeckPanel deckPanel;
 	private PlayPanel playPanel;
+	
+	private ClientCard lastPlayed;
 
 	public ClientBoard(boolean multicolor, int clueCount, int fuckupCount) {	
 		remainingClues = clueCount;
@@ -35,6 +37,8 @@ public class ClientBoard {
 
 		playPanel = new PlayPanel(played);
 		deckPanel = new DeckPanel(clueCount, fuckupCount);
+		
+		lastPlayed = null;
 	}
 
 	public PlayPanel getPlayPanel() { return playPanel; }
@@ -52,8 +56,17 @@ public class ClientBoard {
 			locations.put(color, p);
 		}
 	}
+	
+	public void clearSelected() {
+		if (lastPlayed != null) {
+			lastPlayed.setSelected(false);
+			lastPlayed = null;
+		}
+	}
 
 	public void validPlay(ClientCard card) {
+		lastPlayed = card;
+		card.setSelected(true);
 		played.put(card.color(), card);
 		int index = played.indexOf(card.color());
 		playPanel.addCard(card, index);
@@ -62,6 +75,7 @@ public class ClientBoard {
 	public void invalidPlay(ClientCard c) {
 		discarded.get(c.color()).add(c);
 		remainingFuckups--;
+		deckPanel.useFuckup(remainingFuckups);
 	}
 
 	public void discard(ClientCard c) {

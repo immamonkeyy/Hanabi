@@ -45,8 +45,8 @@ import shared.Util;
  */
 
 //TODO: Let fireworks animations finish before card animations
-//TODO: Display fuck ups
 //TODO: Discard functionality (ability, clue back, see discards)
+//TODO: Invalid play functionality
 //TODO: Displaying multi or maybe pictures for cards?
 //TODO: If you resize the window, the fireworks animation is in the wrong spot :(
 //TODO: Set minimum size so can't resize too small
@@ -162,6 +162,8 @@ public class Client {
 	                Util.handlePlayerCard(input, (playerName, position) -> {
 	            			freeze = true;
 	            			ClientCard played = removePlayerCard(playerName, position);
+	            			String message = "INVALID: " + playerName + " played " + played.toMessageString();
+	            			showAutoCloseMessageDialog(message);
 	            			board.invalidPlay(played);
 	            		});
                 });
@@ -213,6 +215,7 @@ public class Client {
     }
     
     private void clearSelected() {
+    		board.clearSelected();
 		if (selectedPlayer != null) {
 			// when clue was given, their selected cards won't be in the
 			// selectedCards list so we just deselect all the cards in their hand

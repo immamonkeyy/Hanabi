@@ -76,6 +76,10 @@ public class HandCard {
 		return actualCard.toString();
 	}
 	
+	public String toMessageString() {
+		return actualCard.toMessageString();
+	}
+	
 	public int value() {
 		return actualCard.value();
 	}

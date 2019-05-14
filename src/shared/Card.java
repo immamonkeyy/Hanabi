@@ -20,6 +20,10 @@ public class Card {
 		return value + color.toString();
 	}
 	
+	public String toMessageString() {
+		return "a " + color.toString() + " " + value;
+	}
+	
 	public CardColor color() {
 		return color;
 	}

@@ -83,6 +83,10 @@ public class ClientCard extends JPanel {
 		return card.toString();
 	}
 	
+	public String toMessageString() {
+		return card.toMessageString();
+	}
+	
 	public void setSelected(boolean b) {
 		selected = b;
 		Color c = selected ? Color.BLACK : Color.BLUE;
