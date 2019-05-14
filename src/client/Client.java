@@ -51,6 +51,7 @@ import shared.Util;
 //TODO: If you resize the window, the fireworks animation is in the wrong spot :(
 //TODO: Set minimum size so can't resize too small
 //TODO: Fix organization, this class is huge
+//TODO: If clues are filled, disable discard button
 
 public class Client {
 	
@@ -342,20 +343,20 @@ public class Client {
     }
     
     private void addPlayerCard(String playerName, String cardStr) {
-    		ClientPlayer player = players.get(playerName);
-		ClientCard card = player.addCard(getCard(cardStr));
+    		ClientPlayer chosenPlayer = players.get(playerName);
+		ClientCard card = chosenPlayer.addCard(getCard(cardStr));
 		card.addMouseListener(new MouseAdapter() {
 
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				if (validClick(player)) {
-					if (!players.get(myName).equals(selectedPlayer) && !board.hasClues()) {
+				if (validClick(chosenPlayer)) {
+					if (!players.get(myName).equals(chosenPlayer) && !board.hasClues()) {
 						showTimedCloseMessageDialog("No clues to give!");
 						return;
 					}
 
 					if (selectedPlayer == null) {
-						selectedPlayer = player;
+						selectedPlayer = chosenPlayer;
 						selectedPlayer.buttonsVisible(true);
 					}
 					
