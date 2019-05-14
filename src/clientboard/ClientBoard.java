@@ -21,6 +21,8 @@ public class ClientBoard extends JPanel {
 	
 	private int remainingClues;
 	private int remainingFuckups;
+	private int remainingCards;
+	
 	private ColorMap<JPanel> played;
 	private ColorMap<List<ClientCard>> discarded;
 	private Map<CardColor, Point> locations;
@@ -84,6 +86,10 @@ public class ClientBoard extends JPanel {
 	
 	public void useClue() {
 		remainingClues--;
+	}
+
+	public void setRemainingCards(int cardsLeft) {
+		remainingCards = cardsLeft;		
 	}
 
 }

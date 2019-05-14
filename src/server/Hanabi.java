@@ -153,7 +153,7 @@ public class Hanabi {
 		played.put(card.color(), card);
 		forEachPlayer(p -> p.validPlay(currentPlayer, position));
 		
-		if (card.value() <= 5) {
+		if (card.value() == 5) {
 			forEachPlayer(p -> p.fireworkComplete(card.color()));
 		}
 	}

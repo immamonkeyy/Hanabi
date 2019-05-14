@@ -28,6 +28,7 @@ import javax.swing.SwingUtilities;
 
 import clientboard.ClientBoard;
 import clientboard.ClientCard;
+import clientboard.DeckPanel;
 import clientboard.HanabiFireworksPanel;
 import color.CardColor;
 import shared.Card;
@@ -70,6 +71,7 @@ public class Client {
 	private String myName;
 	private JDialog dialog;
 	private ClientBoard board;
+	private DeckPanel deckPanel;
 	
 	private boolean freeze;
 	private boolean multicolor;
@@ -186,7 +188,11 @@ public class Client {
                 
                 Util.handleResponse(Commands.CARDS_LEFT, response, input -> {
 		            int cardsLeft = Integer.parseInt(input);
-		            //TODO: Update deck
+		            board.setRemainingCards(cardsLeft);
+		            // TODO: Have game do all logic for updating display
+		            if (cardsLeft < 3) {
+		            		deckPanel.removeCard();
+		            }
                 });
             }
         }
@@ -409,6 +415,7 @@ public class Client {
     		window.setSize(760, 670);
     		
     		board = new ClientBoard(multicolor);
+    		deckPanel = new DeckPanel();
     		
     		JPanel view = new JPanel(new BorderLayout());
     		view.setBackground(BOARD_COLOR);
@@ -417,7 +424,7 @@ public class Client {
     		view.add(playersCards, BorderLayout.NORTH);
     		view.add(myCards, BorderLayout.SOUTH);
     		view.add(board, BorderLayout.CENTER);
-    		view.add(getDeckPanel(), BorderLayout.WEST);
+    		view.add(deckPanel, BorderLayout.WEST);
     		
     		JPanel glass = (JPanel) window.getGlassPane();
     		glass.setLayout(new BorderLayout());
@@ -428,22 +435,6 @@ public class Client {
     		
     		populateCards();
     		board.saveCardLocationsRelativeTo(view);
-    }
-    
-    private JPanel getDeckPanel() {
-    		JLayeredPane layer = new JLayeredPane();
-    		layer.setPreferredSize(new Dimension(130, 190));
-    		JPanel p = InvisiblePanel.create(new GridBagLayout());
-    		p.add(layer);
-    		Point o = new Point(0, 0);
-    		for (int i = 2; i >= 0; i--) {
-    			JPanel c = ClientCard.getBlankCard();
-    			o.x += 10;
-    			o.y += 10;    		
-    			c.setBounds(o.x, o.y, ClientCard.CARD_DIMENSION.width, ClientCard.CARD_DIMENSION.height);
-    			layer.add(c, Integer.valueOf(i));
-    		}
-    		return p;
     }
 
     private void closeDialog() {
