@@ -158,6 +158,7 @@ public class Hanabi {
 		forEachPlayer(p -> p.validPlay(currentPlayer, position));
 		
 		if (card.value() == 5) {
+			remainingClues++;
 			forEachPlayer(p -> p.fireworkComplete(card.color()));
 		}
 	}

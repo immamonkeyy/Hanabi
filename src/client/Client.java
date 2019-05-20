@@ -58,6 +58,8 @@ import shared.Util;
 public class Client {
 	
     private static int PORT = 8901;
+    private static String SERVER_ADDRESS = "localhost";
+
     private Socket socket;
     private BufferedReader in;
     private PrintWriter out;
@@ -80,6 +82,7 @@ public class Client {
 	private int fuckupCount;
 	
 	private HanabiFireworksPanel fireworksPanel;
+	private JFrame window;
     
     private static final Color BOARD_COLOR = new Color(0, 153, 0);
 	
@@ -194,6 +197,7 @@ public class Client {
                 });
                 
                 Util.handleResponse(Commands.FIREWORK_COMPLETE, response, input -> {
+                		board.getAClueBack();
 		            CardColor color = CardColor.fromString(input);
 		            Point location = board.getLocation(color);
 		            fireworksPanel.fireworkComplete(location, color);
@@ -256,14 +260,14 @@ public class Client {
     		} else {
     			JButton clue = new JButton("Give Clue");
     			buttonPanel.add(clue);
-    			clue.addActionListener(e -> giveClue());
+    			clue.addActionListener(e -> giveClue(buttonPanel));
     		}
 
     		ClientPlayer player = new ClientPlayer(name, isMe, buttonPanel, multicolor);
     		players.addPlayer(player);
     }
     
-    private void giveClue() {
+    private void giveClue(JPanel p) {
     		Set<String> possibleColors = new HashSet<>();
     		Set<String> possibleValues = new HashSet<>();
     		
@@ -302,7 +306,7 @@ public class Client {
     		String message = "Give clue to "  + selectedPlayer + ":";
     		boolean validClue = false;
     		do {
-    			clue = (String) JOptionPane.showInputDialog(null, message, myName, JOptionPane.PLAIN_MESSAGE, 
+    			clue = (String) JOptionPane.showInputDialog(p, message, myName, JOptionPane.PLAIN_MESSAGE, 
     					null, options.toArray(new String[options.size()]), defaultOption);
     			
     			if (clue == null) return; // user hit cancel
@@ -330,7 +334,7 @@ public class Client {
     }
     
     private void showMessageDialog(String message) {
-		JOptionPane.showMessageDialog(null, message, myName, JOptionPane.PLAIN_MESSAGE, null);
+		JOptionPane.showMessageDialog(window, message, myName, JOptionPane.PLAIN_MESSAGE, null);
     }
     
     private void intro() {
@@ -435,9 +439,9 @@ public class Client {
     }
     
     private void drawBoard() {
-    		JFrame window = new JFrame(myName);
+    		window = new JFrame(myName);
     		window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    		window.setSize(800, 670);
+    		window.setSize(650, 670);
     		
     		board = new ClientBoard(multicolor, clueCount, fuckupCount);
     		
@@ -471,7 +475,7 @@ public class Client {
 			closeDialog();
 			JOptionPane pane = new JOptionPane(message, JOptionPane.PLAIN_MESSAGE, JOptionPane.DEFAULT_OPTION, null, new Object[]{}, null);
 			
-			dialog = pane.createDialog(null, myName);
+			dialog = pane.createDialog(window, myName);
 			pane.selectInitialValue();
 			
 			dialog.setVisible(true);
@@ -521,6 +525,6 @@ public class Client {
     }
     
     public static void main(String[] args) throws Exception {
-        new Client("localhost").play();
+        new Client(SERVER_ADDRESS).play();
     }
 }

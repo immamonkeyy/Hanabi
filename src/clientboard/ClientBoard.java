@@ -71,16 +71,29 @@ public class ClientBoard {
 		int index = played.indexOf(card.color());
 		playPanel.addCard(card, index);
 	}
+	
+	private void addToDiscards(ClientCard c) {
+		String tabs = "\t\t\t\t\t";
+		if (c.color() != CardColor.MULTI) tabs += "\t";
+		String message = "Discarding " + c.toMessageString();
+		System.out.println(message + tabs + message);
+		
+		discarded.get(c.color()).add(c);
+	}
 
 	public void invalidPlay(ClientCard c) {
-		discarded.get(c.color()).add(c);
+		addToDiscards(c);
 		remainingFuckups--;
 		deckPanel.useFuckup(remainingFuckups);
 	}
 
 	// TODO: Can't discard if clues full
 	public void discard(ClientCard c) {
-		discarded.get(c.color()).add(c);
+		addToDiscards(c);
+		getAClueBack();
+	}
+	
+	public void getAClueBack() {
 		remainingClues++;
 		deckPanel.getAClueBack(remainingClues);
 	}

@@ -29,25 +29,25 @@ public class DeckPanel extends JPanel {
 		clues = new ClueToken[clueCount];
 		fuckups = new FuckupToken[fuckupCount];
 
-		layeredDeck = new JLayeredPane();
-		Dimension preferredSize = new Dimension(ClientCard.CARD_DIMENSION);
-		preferredSize.width += 40;
-		preferredSize.height += 40;
-		layeredDeck.setPreferredSize(preferredSize);
-
-		Rectangle bounds = new Rectangle(ClientCard.CARD_DIMENSION);
-		for (int i = 2; i >= 0; i--) {
-			JPanel c = ClientCard.getBlankCard();
-			bounds.translate(10, 10);
-			c.setBounds(bounds);
-			layeredDeck.add(c, Integer.valueOf(i));
-		}
+//		layeredDeck = new JLayeredPane();
+//		Dimension preferredSize = new Dimension(ClientCard.CARD_DIMENSION);
+//		preferredSize.width += 40;
+//		preferredSize.height += 40;
+//		layeredDeck.setPreferredSize(preferredSize);
+//
+//		Rectangle bounds = new Rectangle(ClientCard.CARD_DIMENSION);
+//		for (int i = 2; i >= 0; i--) {
+//			JPanel c = ClientCard.getBlankCard();
+//			bounds.translate(10, 10);
+//			c.setBounds(bounds);
+//			layeredDeck.add(c, Integer.valueOf(i));
+//		}
 
 		JPanel deckAndTokens = InvisiblePanel.create(new BorderLayout());
 		add(deckAndTokens);
 		
 		deckAndTokens.add(createTokenPanel(10, clues, () -> new ClueToken()), BorderLayout.WEST);
-		deckAndTokens.add(layeredDeck, BorderLayout.CENTER);
+//		deckAndTokens.add(layeredDeck, BorderLayout.CENTER);
 		deckAndTokens.add(createTokenPanel(10, fuckups, () -> new FuckupToken()), BorderLayout.EAST);
 	}
 	
@@ -90,11 +90,11 @@ public class DeckPanel extends JPanel {
 	}
 
 	public void remainingCards(int cardsLeft) {
-		layeredDeck.setToolTipText(cardsLeft + " cards left");
-		if (cardsLeft < 3 && layeredDeck.getComponentCount() > 0) {
-			layeredDeck.remove(layeredDeck.lowestLayer());
-			layeredDeck.repaint();
-			layeredDeck.revalidate();
-		}
+//		layeredDeck.setToolTipText(cardsLeft + " cards left");
+//		if (cardsLeft < 3 && layeredDeck.getComponentCount() > 0) {
+//			layeredDeck.remove(layeredDeck.lowestLayer());
+//			layeredDeck.repaint();
+//			layeredDeck.revalidate();
+//		}
 	}
 }

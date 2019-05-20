@@ -14,6 +14,7 @@ import java.util.concurrent.TimeUnit;
 import javax.swing.JPanel;
 
 import color.CardColor;
+import shared.Util;
 
 // TODO: Fireworks at end are smaller/shorter?
 
@@ -68,7 +69,7 @@ public class HanabiFireworksPanel extends JPanel {
 	private void triggerRepaint() {
 		repaint();
 		while (!sparks.isEmpty()) {
-			pauseMillis(33);
+			Util.pauseMillis(33);
 			repaint();
 		}
 	}
@@ -93,11 +94,5 @@ public class HanabiFireworksPanel extends JPanel {
 	
 	public boolean removeSpark(Spark s) {
 		return sparks.remove(s);
-	}
-	
-	private void pauseMillis(int m) {
-		try {
-			TimeUnit.MILLISECONDS.sleep(m);
-		} catch (InterruptedException e) { }	
 	}
 }
