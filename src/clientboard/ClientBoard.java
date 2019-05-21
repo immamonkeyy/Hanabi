@@ -14,6 +14,7 @@ import shared.ColorMap;
 
 public class ClientBoard {
 
+	private int totalClues;
 	private int remainingClues;
 	private int remainingFuckups;
 	private int remainingCards;
@@ -28,7 +29,7 @@ public class ClientBoard {
 	private ClientCard lastPlayed;
 
 	public ClientBoard(boolean multicolor, int clueCount, int fuckupCount) {	
-		remainingClues = clueCount;
+		remainingClues = totalClues = clueCount;
 		remainingFuckups = fuckupCount;
 
 		played = new ColorMap<JPanel>(multicolor, () -> ClientCard.getEmptySpot());
@@ -105,6 +106,10 @@ public class ClientBoard {
 
 	public boolean hasClues() {
 		return remainingClues > 0;
+	}
+	
+	public boolean cluesFull() {
+		return remainingClues == totalClues;
 	}
 
 	public void setRemainingCards(int cardsLeft) {

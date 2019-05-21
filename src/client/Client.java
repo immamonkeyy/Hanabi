@@ -238,7 +238,7 @@ public class Client {
 			for (ClientCard c : selectedPlayer.getHand()) {
 				c.setSelected(false);
 			}
-	    		selectedPlayer.buttonsVisible(false);
+	    		selectedPlayer.hideButtons();;
 			selectedPlayer = null;
 			selectedCards.clear();
 		}
@@ -246,24 +246,24 @@ public class Client {
     
     private void addPlayer(String name) {
     		JPanel buttonPanel = InvisiblePanel.create();
+    		JButton[] buttons;
     		boolean isMe = name.equals(myName);
     	
     		if (isMe) {
-    			JButton play = new JButton("Play");
-    			buttonPanel.add(play);
-    			play.addActionListener(e -> out.println(Commands.PLAY + selectedCards.get(0).getPosition()));
+    			buttons = new JButton[2];
+    			buttons[0] = new JButton("Play");
+    			buttons[0].addActionListener(e -> out.println(Commands.PLAY + selectedCards.get(0).getPosition()));
     			
-    			JButton discard = new JButton("Discard");
-    			buttonPanel.add(discard);
-    			discard.addActionListener(e -> out.println(Commands.DISCARD + selectedCards.get(0).getPosition()));
+    			buttons[1] = new JButton("Discard");
+    			buttons[1].addActionListener(e -> out.println(Commands.DISCARD + selectedCards.get(0).getPosition()));
     			
     		} else {
-    			JButton clue = new JButton("Give Clue");
-    			buttonPanel.add(clue);
-    			clue.addActionListener(e -> giveClue(buttonPanel));
+    			buttons = new JButton[1];
+    			buttons[0] = new JButton("Give Clue");
+    			buttons[0].addActionListener(e -> giveClue(buttonPanel));
     		}
 
-    		ClientPlayer player = new ClientPlayer(name, isMe, buttonPanel, multicolor);
+    		ClientPlayer player = new ClientPlayer(name, isMe, buttons, multicolor);
     		players.addPlayer(player);
     }
     
@@ -376,7 +376,7 @@ public class Client {
 
 					if (selectedPlayer == null) {
 						selectedPlayer = chosenPlayer;
-						selectedPlayer.buttonsVisible(true);
+						selectedPlayer.showButtons(board.cluesFull());
 					}
 					
 					if (!players.get(myName).equals(selectedPlayer) || // selected another player's cards
@@ -387,7 +387,7 @@ public class Client {
 							card.setSelected(false);
 							selectedCards.remove(card);
 							if (selectedCards.isEmpty()) {
-								selectedPlayer.buttonsVisible(false);
+								selectedPlayer.hideButtons();
 								selectedPlayer = null;
 							}
 						} else {

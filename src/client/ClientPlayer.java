@@ -6,6 +6,7 @@ import java.awt.Component;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
@@ -20,20 +21,24 @@ public class ClientPlayer {
 	private boolean isMe;
 	
 	private JPanel buttonPanel;
+	private JButton[] buttons;
+	
 	private JPanel turnPanel;
 	private JPanel cardPanel;
 	
 	private boolean buttonPanelSizeSet;
 	private boolean multicolor;
 
-	public ClientPlayer(String name, boolean isMe, JPanel givenButtonPanel, boolean multi) {
+	public ClientPlayer(String name, boolean isMe, JButton[] buttons, boolean multi) {
 		playerName = name;
 		this.isMe = isMe;
 		hand = new ArrayList<ClientCard>();
 		buttonPanelSizeSet = false;
 		multicolor = multi;
 		
-		buttonPanel = givenButtonPanel;
+		this.buttons = buttons;
+		buttonPanel = InvisiblePanel.create();
+		for (JButton b : buttons) buttonPanel.add(b);
 		
 		cardPanel = InvisiblePanel.create();
 		
@@ -49,7 +54,7 @@ public class ClientPlayer {
 		hand.add(c);
 		cardPanel.add(c);
 
-		buttonsVisible(false);
+		hideButtons();
 
 		boolean showCards = isMe ? false : true;
 		c.display(showCards);
@@ -80,7 +85,7 @@ public class ClientPlayer {
 		return playerName;
 	}
 	
-	public void buttonsVisible(boolean b) {
+	public void buttonsVisible(boolean visible, boolean cluesFull) {
 		if (buttonPanel.getHeight() == 0) return;
 
 		if (!buttonPanelSizeSet) {
@@ -88,12 +93,25 @@ public class ClientPlayer {
 			buttonPanelSizeSet = true;
 		}
 		
-		for (Component c : buttonPanel.getComponents()) c.setVisible(b);
+		for (JButton b : buttons) {
+			if (b.getText().toLowerCase().equals("discard")) {
+				if (!cluesFull) b.setVisible(visible);
+			}
+			else b.setVisible(visible);
+		}
 	}
 	
-	public void highlight(boolean turn) {
-		if (turn) turnPanel.setOpaque(true);
-		else turnPanel.setOpaque(false);
+	public void showButtons(boolean cluesFull) {
+		buttonsVisible(true, cluesFull);
+	}
+	
+	// When hiding buttons, doesn't matter if clues are full or not
+	public void hideButtons() {
+		buttonsVisible(false, false);
+	}
+	
+	public void highlight(boolean isMyTurn) {
+		turnPanel.setOpaque(isMyTurn);
 		turnPanel.repaint();
 	}
     
