@@ -25,11 +25,15 @@ import shared.HandCard;
 @SuppressWarnings("serial")
 public class ClientCard extends JPanel {
 	
-	private static int BORDER_SIZE = 5;
-	private static int BORDER_OUTLINE_SIZE = 3;
+	private static final int BORDER_SIZE = 5;
+	private static final int SMALL_BORDER_SIZE = 3;
+	private static final int BORDER_OUTLINE_SIZE = 3;
 	
 	public static final Dimension CARD_DIMENSION = new Dimension(90, 150);
+	public static final Dimension SMALL_CARD_DIMENSION = new Dimension(60, 100);
+	
 	private static Border NORMAL_BORDER = new LineBorder(Color.WHITE, BORDER_SIZE);
+	private static Border SMALL_BORDER = new LineBorder(Color.WHITE, SMALL_BORDER_SIZE);
 	
 	private HandCard card;
 	private boolean selected;
@@ -37,6 +41,8 @@ public class ClientCard extends JPanel {
 	
 	private MouseListener mouseListener;
 	private CluePanel cluePanel;
+	
+	private boolean isSmall;
 	
 	public ClientCard(Card card, int pos, boolean multi) {
 		super();
@@ -48,6 +54,8 @@ public class ClientCard extends JPanel {
 		this.setBorder(NORMAL_BORDER);
 		this.setBackground(Color.BLUE);
 		this.setLayout(new BorderLayout());
+		
+		isSmall = false;
 	}
 	
 	public int value() {
@@ -106,6 +114,13 @@ public class ClientCard extends JPanel {
 		}
 	}
 	
+	public void displaySmall() {
+		isSmall = true;
+		this.setPreferredSize(SMALL_CARD_DIMENSION);
+		this.setBorder(SMALL_BORDER);
+		display(true);
+	}
+	
 	 /*
 	  *  ________
 	  * |5      5| <- getNumberPanel produces this horizontal panel
@@ -116,10 +131,11 @@ public class ClientCard extends JPanel {
 	  *  --------
 	  */
 	private JPanel getNumberPanel() {
+		int size = isSmall ? 20 : 30;
 		JPanel panel = InvisiblePanel.create(new BorderLayout());
 				
-		panel.add(getCardLabel(card.value() + "", 30), BorderLayout.WEST);
-		panel.add(getCardLabel(card.value() + "", 30), BorderLayout.EAST);
+		panel.add(getCardLabel(card.value() + "", size), BorderLayout.WEST);
+		panel.add(getCardLabel(card.value() + "", size), BorderLayout.EAST);
 		return panel;
 	}
 	
@@ -133,12 +149,13 @@ public class ClientCard extends JPanel {
 	
 	// This is the panel in the middle of the card with the "fireworks" on it
 	private JPanel getFrontCenterPanel() {
+		int size = isSmall ? 45 : 75;
 		JPanel panel = InvisiblePanel.create(new GridLayout(3, 3));
 		panel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 		for (int i : CardColor.PATTERNS[card.value() - 1]) {
 			if (i == 1) {
 				JPanel p = InvisiblePanel.create(new GridBagLayout());
-				p.add(getCardLabel("*", 75));
+				p.add(getCardLabel("*", size));
 				panel.add(p);
 			}
 			else panel.add(new JLabel());

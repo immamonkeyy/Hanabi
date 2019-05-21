@@ -263,7 +263,8 @@ public class Client {
     			buttons[0].addActionListener(e -> giveClue(buttonPanel));
     		}
 
-    		ClientPlayer player = new ClientPlayer(name, isMe, buttons, multicolor);
+    		for (JButton b : buttons) buttonPanel.add(b);
+    		ClientPlayer player = new ClientPlayer(name, isMe, buttons, buttonPanel, multicolor);
     		players.addPlayer(player);
     }
     
@@ -445,14 +446,18 @@ public class Client {
     		
     		board = new ClientBoard(multicolor, clueCount, fuckupCount);
     		
-    		JPanel view = new JPanel(new BorderLayout());
-    		view.setBackground(BOARD_COLOR);
-    		window.add(view);
+    		JPanel innerView = InvisiblePanel.create(new BorderLayout());
     		
-    		view.add(playersCards, BorderLayout.NORTH);
-    		view.add(myCards, BorderLayout.SOUTH);
-    		view.add(board.getPlayPanel(), BorderLayout.CENTER);
-    		view.add(board.getDeckPanel(), BorderLayout.WEST);
+    		innerView.add(playersCards, BorderLayout.NORTH);
+    		innerView.add(myCards, BorderLayout.SOUTH);
+    		innerView.add(board.getPlayPanel(), BorderLayout.CENTER);
+    		innerView.add(board.getDeckPanel(), BorderLayout.WEST);
+    		
+    		JPanel outerView = new JPanel(new BorderLayout());
+    		outerView.setBackground(BOARD_COLOR);
+    		outerView.add(innerView, BorderLayout.CENTER);
+    		outerView.add(board.getDiscardPanel(), BorderLayout.EAST);
+    		window.add(outerView);
     		
     		JPanel glass = (JPanel) window.getGlassPane();
     		glass.setLayout(new BorderLayout());
@@ -462,7 +467,7 @@ public class Client {
     		window.setVisible(true);
     		
     		populateCards();
-    		board.saveCardLocationsRelativeTo(view);
+    		board.saveCardLocationsRelativeTo(innerView);
     }
 
     private void closeDialog() {

@@ -3,6 +3,7 @@ package clientboard;
 import java.awt.Point;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -20,11 +21,13 @@ public class ClientBoard {
 	private int remainingCards;
 
 	private ColorMap<JPanel> played;
-	private ColorMap<List<ClientCard>> discarded;
+	private ColorMap<List<ClientCard>> oopsDiscards;
+	private ColorMap<List<ClientCard>> okDiscards;
 	private Map<CardColor, Point> locations;
 
 	private DeckPanel deckPanel;
 	private PlayPanel playPanel;
+	private DiscardPanel discardPanel;
 	
 	private ClientCard lastPlayed;
 
@@ -33,17 +36,20 @@ public class ClientBoard {
 		remainingFuckups = fuckupCount;
 
 		played = new ColorMap<JPanel>(multicolor, () -> ClientCard.getEmptySpot());
-		discarded = new ColorMap<List<ClientCard>>(multicolor, () -> new ArrayList<ClientCard>());
+		oopsDiscards = new ColorMap<List<ClientCard>>(multicolor, () -> new ArrayList<ClientCard>());
+		okDiscards = new ColorMap<List<ClientCard>>(multicolor, () -> new ArrayList<ClientCard>());
 		locations = new HashMap<CardColor, Point>();
 
 		playPanel = new PlayPanel(played);
 		deckPanel = new DeckPanel(clueCount, fuckupCount);
+		discardPanel = new DiscardPanel();
 		
 		lastPlayed = null;
 	}
 
 	public PlayPanel getPlayPanel() { return playPanel; }
 	public DeckPanel getDeckPanel() { return deckPanel; }
+	public DiscardPanel getDiscardPanel() { return discardPanel; }
 
 	public Point getLocation(CardColor c) {
 		return locations.get(c);
@@ -65,12 +71,22 @@ public class ClientBoard {
 		}
 	}
 
-	public void validPlay(ClientCard card) {
-		lastPlayed = card;
-		card.setSelected(true);
-		played.put(card.color(), card);
-		int index = played.indexOf(card.color());
-		playPanel.addCard(card, index);
+	public void validPlay(ClientCard playedCard) {
+		lastPlayed = playedCard;
+		playedCard.setSelected(true);
+		played.put(playedCard.color(), playedCard);
+		int index = played.indexOf(playedCard.color());
+		playPanel.addCard(playedCard, index);
+		
+		Iterator<ClientCard> oopsIter = oopsDiscards.get(playedCard.color()).iterator();
+		while (oopsIter.hasNext()) {
+			ClientCard c = oopsIter.next();
+			if (c.value() == playedCard.value()) {
+				oopsIter.remove();
+				okDiscards.get(playedCard.color()).add(c);
+			}
+		}
+		discardPanel.refresh(oopsDiscards, okDiscards);
 	}
 	
 	private void addToDiscards(ClientCard c) {
@@ -79,7 +95,17 @@ public class ClientBoard {
 		String message = "Discarding " + c.toMessageString();
 		System.out.println(message + tabs + message);
 		
-		discarded.get(c.color()).add(c);
+		if (!(played.get(c.color()) instanceof ClientCard)) {
+			oopsDiscards.get(c.color()).add(c);
+		} else {
+			ClientCard lastPlayed = (ClientCard) played.get(c.color());
+			if (lastPlayed.value() < c.value()) {
+				oopsDiscards.get(c.color()).add(c);
+			} else {
+				okDiscards.get(c.color()).add(c);
+			}
+		}
+		discardPanel.refresh(oopsDiscards, okDiscards);
 	}
 
 	public void invalidPlay(ClientCard c) {
@@ -109,7 +135,8 @@ public class ClientBoard {
 	}
 	
 	public boolean cluesFull() {
-		return remainingClues == totalClues;
+//		return remainingClues == totalClues;
+		return false;
 	}
 
 	public void setRemainingCards(int cardsLeft) {

@@ -2,7 +2,6 @@ package client;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Component;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,7 +28,7 @@ public class ClientPlayer {
 	private boolean buttonPanelSizeSet;
 	private boolean multicolor;
 
-	public ClientPlayer(String name, boolean isMe, JButton[] buttons, boolean multi) {
+	public ClientPlayer(String name, boolean isMe, JButton[] buttons, JPanel buttonPanel, boolean multi) {
 		playerName = name;
 		this.isMe = isMe;
 		hand = new ArrayList<ClientCard>();
@@ -37,8 +36,7 @@ public class ClientPlayer {
 		multicolor = multi;
 		
 		this.buttons = buttons;
-		buttonPanel = InvisiblePanel.create();
-		for (JButton b : buttons) buttonPanel.add(b);
+		this.buttonPanel = buttonPanel;
 		
 		cardPanel = InvisiblePanel.create();
 		
@@ -88,6 +86,7 @@ public class ClientPlayer {
 	public void buttonsVisible(boolean visible, boolean cluesFull) {
 		if (buttonPanel.getHeight() == 0) return;
 
+		// TODO: Figure out this ish
 		if (!buttonPanelSizeSet) {
 			buttonPanel.setPreferredSize(buttonPanel.getSize());
 			buttonPanelSizeSet = true;
