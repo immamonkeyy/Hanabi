@@ -58,7 +58,6 @@ import shared.Util;
 public class Client {
 	
     private static int PORT = 8901;
-    private static String SERVER_ADDRESS = "localhost";
 
     private Socket socket;
     private BufferedReader in;
@@ -530,6 +529,8 @@ public class Client {
     }
     
     public static void main(String[] args) throws Exception {
-        new Client(SERVER_ADDRESS).play();
+    		String server = "localhost";
+    		if (args.length > 0) server = args[0];
+        new Client(server).play();
     }
 }

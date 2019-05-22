@@ -135,8 +135,7 @@ public class ClientBoard {
 	}
 	
 	public boolean cluesFull() {
-//		return remainingClues == totalClues;
-		return false;
+		return remainingClues == totalClues;
 	}
 
 	public void setRemainingCards(int cardsLeft) {
