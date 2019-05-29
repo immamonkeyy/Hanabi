@@ -20,10 +20,11 @@ import shared.ColorMap;
 public class DiscardPanel extends JPanel {
 
 	public DiscardPanel() {
-		super(new GridBagLayout());
+		super(new BorderLayout());
 		this.setOpaque(false);
 	}
 
+	//TODO: Refresh/revalidate
 	public void refresh(ColorMap<List<ClientCard>> oops, ColorMap<List<ClientCard>> ok) {
 		this.removeAll();
 		int hgap = 0;
@@ -53,7 +54,9 @@ public class DiscardPanel extends JPanel {
 				oopsPanel.add(pane);
 			}
 		}
-		this.add(oopsPanel);
+		this.add(oopsPanel, BorderLayout.NORTH);
+		this.repaint();
+		this.revalidate();
 	}
 
 	

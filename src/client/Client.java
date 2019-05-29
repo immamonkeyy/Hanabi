@@ -2,6 +2,7 @@ package client;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Point;
 import java.awt.event.MouseAdapter;
@@ -22,10 +23,15 @@ import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollBar;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.ScrollPaneLayout;
 import javax.swing.SwingUtilities;
 
 import clientboard.ClientBoard;
 import clientboard.ClientCard;
+import clientboard.GameLog;
 import clientboard.HanabiFireworksPanel;
 import color.CardColor;
 import shared.Card;
@@ -54,6 +60,13 @@ import shared.Util;
 //TODO: End game if use up all fuckup tokens
 //TODO: Win game with all 5s
 //TODO: Ability to repeat game with same deck order
+//TODO: Hover over other players cards to show what they know?
+//TODO: Game log?
+//TODO: Show other clues
+//TODO: Fix layout issues
+//TODO: End game when fuckups run out
+//TODO: End game on all 5s, end game when you run out of cards, let players have extra turns after cards end
+//TODO: Add in variants...OMG WHAT?!
 
 public class Client {
 	
@@ -82,6 +95,8 @@ public class Client {
 	
 	private HanabiFireworksPanel fireworksPanel;
 	private JFrame window;
+	
+	GameLog log;
     
     private static final Color BOARD_COLOR = new Color(0, 153, 0);
 	
@@ -100,6 +115,7 @@ public class Client {
 		myCards = InvisiblePanel.create();
 		
 		fireworksPanel = new HanabiFireworksPanel();
+		log = new GameLog();
 		
 		myName = null;
 		dialog = null;
@@ -145,6 +161,7 @@ public class Client {
                 });
                 
                 Util.handleResponse(Commands.START_GAME, response, startingPlayer -> {
+                		log.append(action(startingPlayer, "start", "the game!"));
 	                	players.startGame(startingPlayer);
 	                	closeDialog();
 	                	try {
@@ -159,6 +176,7 @@ public class Client {
 	            			freeze = true;
 	            			ClientCard played = removePlayerCard(playerName, position);
 	            			board.validPlay(played);
+	            			log.append(action(playerName, "play", played.toMessageString()));
 	            		});
                 });
                 
@@ -166,9 +184,10 @@ public class Client {
                 	Util.handlePlayerCard(input, (playerName, position) -> {
             			freeze = true;
             			ClientCard played = removePlayerCard(playerName, position);
-            			String message = playerName + " discarded " + played.toMessageString();
+            			String message = action(playerName, "discard", played.toMessageString());
             			showAutoCloseMessageDialog(message);
             			board.discard(played);
+            			log.append(message);
             		});
             });
                 
@@ -176,9 +195,10 @@ public class Client {
 	                Util.handlePlayerCard(input, (playerName, position) -> {
 	            			freeze = true;
 	            			ClientCard played = removePlayerCard(playerName, position);
-	            			String message = "INVALID: " + playerName + " played " + played.toMessageString();
+	            			String message = "INVALID: " + action(playerName, "play", played.toMessageString());
 	            			showAutoCloseMessageDialog(message);
 	            			board.invalidPlay(played);
+	            			log.append(action(playerName, "play", played.toMessageString() + " (invalid)"));
 	            		});
                 });
 
@@ -200,6 +220,7 @@ public class Client {
 		            CardColor color = CardColor.fromString(input);
 		            Point location = board.getLocation(color);
 		            fireworksPanel.fireworkComplete(location, color);
+		            log.append(color.toString() + " firework complete!");
                 });
                 
                 Util.handleResponse(Commands.CLUE, response, input -> {
@@ -223,10 +244,26 @@ public class Client {
         }
     }
     
+    private String recipient(String n) {
+    		return n.equals(myName) ? "you" : n;
+    }
+    
+    private String action(String name, String verb, String rest) {
+    		return action(name, verb, verb + "s", rest);
+    }
+    
+    private String action(String name, String verbSecond, String verbThird, String rest) {
+		String str;
+		if (name.equals(myName)) {
+			str = "you " + verbSecond;
+		} else str = name + " " + verbThird;
+		return str + " " + rest;
+}
+    
     private void announceClueGiven(String playerName, String clue) {
-    		String recipient = playerName.equals(myName) ? "you" : playerName;
-    		String message = players.turn().getPlayerName() + " told " + recipient + " about: " + clue.toUpperCase();
+    		String message = action(players.turn().getPlayerName(), "tell", recipient(playerName) + " about: " + clue);
     		showAutoCloseMessageDialog(message);
+    		log.append(message);
     }
     
     private void clearSelected() {
@@ -265,6 +302,7 @@ public class Client {
     		for (JButton b : buttons) buttonPanel.add(b);
     		ClientPlayer player = new ClientPlayer(name, isMe, buttons, buttonPanel, multicolor);
     		players.addPlayer(player);
+    		log.append("Adding player \"" + name + "\"" + (isMe ? " (you!)" : ""));
     }
     
     private void giveClue(JPanel p) {
@@ -452,10 +490,14 @@ public class Client {
     		innerView.add(board.getPlayPanel(), BorderLayout.CENTER);
     		innerView.add(board.getDeckPanel(), BorderLayout.WEST);
     		
+    		JPanel rightPanel = InvisiblePanel.create(new BorderLayout());
+    		rightPanel.add(board.getDiscardPanel(), BorderLayout.CENTER);
+    		rightPanel.add(log, BorderLayout.SOUTH);
+    		
     		JPanel outerView = new JPanel(new BorderLayout());
     		outerView.setBackground(BOARD_COLOR);
     		outerView.add(innerView, BorderLayout.CENTER);
-    		outerView.add(board.getDiscardPanel(), BorderLayout.EAST);
+    		outerView.add(rightPanel, BorderLayout.EAST);
     		window.add(outerView);
     		
     		JPanel glass = (JPanel) window.getGlassPane();
