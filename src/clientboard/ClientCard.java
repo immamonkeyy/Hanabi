@@ -43,6 +43,7 @@ public class ClientCard extends JPanel {
     private CluePanel cluePanel;
 
     private boolean isSmall;
+    private boolean hover;
 
     public ClientCard(Card card, int pos, boolean multi) {
         super();
@@ -56,6 +57,7 @@ public class ClientCard extends JPanel {
         this.setLayout(new BorderLayout());
 
         isSmall = false;
+        hover = false;
     }
 
     public int value() {
@@ -114,6 +116,11 @@ public class ClientCard extends JPanel {
             cluePanel = new CluePanel(card);
             this.add(cluePanel, BorderLayout.CENTER);
         }
+    }
+    
+    //this won't update
+    public JPanel getCluePanel() {
+        return new CluePanel(card);
     }
 
     public void displaySmall() {
@@ -192,5 +199,13 @@ public class ClientCard extends JPanel {
         p.setBorder(NORMAL_BORDER);
         p.setBackground(Color.BLUE);
         return p;
+    }
+
+    public void setHover(boolean b) {
+        hover = b;
+    }
+    
+    public boolean getHover() {
+        return hover;
     }
 }

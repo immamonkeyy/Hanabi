@@ -50,20 +50,23 @@ import shared.Util;
  * -Whose turn it is, whose turn is next DONE
  */
 
-//TODO: Let fireworks animations finish before card animations
-//TODO: Display discards
-//TODO: Displaying multi or maybe pictures for cards? Also pictures for tokens
-//TODO: If you resize the window, the fireworks animation is in the wrong spot :(
-//TODO: Set minimum size so can't resize too small
-//TODO: Fix organization, this class is huge
 //TODO: End game if use up all fuckup tokens
 //TODO: Win game with all 5s
+//TODO: Handle running out of cards
+//TODO: Undo button?
+//TODO: If you resize the window, the fireworks animation is in the wrong spot :(
+//TODO: Display discards
+
+//TODO: JList instead of combo box when giving clues
+//TODO: Let fireworks animations finish before card animations
+//TODO: Displaying multi or maybe pictures for cards? Also pictures for tokens
+//TODO: Set minimum size so can't resize too small
+//TODO: Fix organization, this class is huge
 //TODO: Ability to repeat game with same deck order
 //TODO: Hover over other players cards to show what they know?
 //TODO: Game log?
 //TODO: Show other clues
 //TODO: Fix layout issues
-//TODO: End game when fuckups run out
 //TODO: End game on all 5s, end game when you run out of cards, let players have extra turns after cards end
 //TODO: Add in variants...OMG WHAT?!
 
@@ -443,6 +446,34 @@ public class Client {
                     }
                 }
             }
+            
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                if (!players.get(myName).equals(chosenPlayer)) {
+                    card.setHover(true);
+                    new Thread(() -> {
+                        Util.pauseMillis(1100);
+                        if (card.getHover()) {
+                            card.display(false);
+                            card.revalidate();
+                            card.repaint();
+                        }
+                    }).start();
+                }
+
+                
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                if (card.getHover()) {
+                    card.setHover(false);
+                    card.display(true);
+                    card.revalidate();
+                    card.repaint();
+                }
+            }
+            
         });
     }
 
