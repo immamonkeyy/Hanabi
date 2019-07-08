@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.ServerSocket;
 
 //kill $(lsof -t -i :8901)
+//ipconfig getifaddr en0
 
 public class Server {
 

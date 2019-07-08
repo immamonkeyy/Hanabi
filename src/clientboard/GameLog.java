@@ -21,7 +21,7 @@ public class GameLog extends JScrollPane {
         super();
 
         JPanel panel = InvisiblePanel.create(new BorderLayout());
-        panel.add(new JButton("Other Discards"), BorderLayout.CENTER);
+        //panel.add(new JButton("Other Discards"), BorderLayout.CENTER);
 
         textArea = new JTextArea();
         textArea.setOpaque(false);
@@ -43,7 +43,7 @@ public class GameLog extends JScrollPane {
 
     public void append(String s) {
         textArea.append("> " + s + "\n");
-        verticalScroll.setValue(verticalScroll.getMaximum()); // make it scroll to bottom better
+        verticalScroll.setValue(verticalScroll.getMaximum()); // TODO: make it scroll to bottom better
     }
 
 }

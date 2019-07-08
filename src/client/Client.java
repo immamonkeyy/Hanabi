@@ -56,7 +56,6 @@ import shared.Util;
 //TODO: If you resize the window, the fireworks animation is in the wrong spot :(
 //TODO: Set minimum size so can't resize too small
 //TODO: Fix organization, this class is huge
-//TODO: If clues are filled, disable discard button
 //TODO: End game if use up all fuckup tokens
 //TODO: Win game with all 5s
 //TODO: Ability to repeat game with same deck order
