@@ -56,6 +56,7 @@ import shared.Util;
 //TODO: Undo button?
 //TODO: If you resize the window, the fireworks animation is in the wrong spot :(
 //TODO: Display discards
+//TODO: If play while hover, go back to front of card
 
 //TODO: JList instead of combo box when giving clues
 //TODO: Let fireworks animations finish before card animations
@@ -102,6 +103,11 @@ public class Client {
 
     private static final Color BOARD_COLOR = new Color(0, 153, 0);
 
+    public Client(String serverAddress, String name) throws Exception {
+        this(serverAddress);
+        myName = name;
+    }
+    
     public Client(String serverAddress) throws Exception {
         socket = new Socket(serverAddress, PORT);
         in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -552,17 +558,16 @@ public class Client {
     }
 
     private void closeDialog() {
-        if (dialog != null)
-            dialog.dispose();
+        if (dialog != null) dialog.dispose();
     }
 
     // Must be started in new thread in order to close
     private void showAutoCloseMessageDialog(String message) {
         new Thread(() -> {
-            closeDialog();
             JOptionPane pane = new JOptionPane(message, JOptionPane.PLAIN_MESSAGE, JOptionPane.DEFAULT_OPTION, null,
                     new Object[] {}, null);
 
+            closeDialog();
             dialog = pane.createDialog(window, myName);
             pane.selectInitialValue();
 
@@ -579,7 +584,6 @@ public class Client {
     }
 
     private String chooseStartingPlayer() {
-        closeDialog();
 
         String message = "Who is the most colorful? ";
         for (String name : players.names()) {
@@ -589,6 +593,7 @@ public class Client {
         JOptionPane pane = new JOptionPane(message, JOptionPane.PLAIN_MESSAGE, JOptionPane.DEFAULT_OPTION);
         pane.setWantsInput(true);
 
+        closeDialog();
         dialog = pane.createDialog(null, myName);
 
         pane.selectInitialValue();
@@ -608,11 +613,15 @@ public class Client {
         return JOptionPane.showInputDialog(null, "Choose a screen name:", "Screen name selection",
                 JOptionPane.PLAIN_MESSAGE);
     }
+    
+    // For testing only
+    public void selectStartingPlayer(String name) {
+        out.println(Commands.CHOOSE_STARTING_PLAYER + name);
+    }
 
     public static void main(String[] args) throws Exception {
         String server = "localhost";
-        if (args.length > 0)
-            server = args[0];
+        if (args.length > 0) server = args[0];
         new Client(server).play();
     }
 }
