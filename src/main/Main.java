@@ -10,6 +10,8 @@ public class Main {
     
     public static void main(String[] args) {
         String host = "localhost";
+        String name1 = "Erica";
+        String name2 = "Sam";
         
         new Thread(() -> {
             try {
@@ -21,32 +23,34 @@ public class Main {
         
         new Thread(() ->  {
             try {
-                Client erica = new Client(host, "Erica");
-                erica.play();
+                Client p1 = new Client(host, name1);
+                p1.play();
             } catch(Exception e) {
-                System.out.println("Client Erica threw Exception: " + e.getMessage());
+                System.out.println("Client " + name1 + " threw Exception: " + e.getMessage());
             }
         }).start();
         
-        Util.pauseMillis(2000);
+        Util.pauseMillis(3000);
 
         new Thread(() ->  {
             try {
-                Client sam = new Client(host, "Sam");
+                Client p2 = new Client(host, name2);
                 
                 new Thread(() -> {
                     try {
-                        sam.play();
-                    } catch (Exception e) { }
+                        p2.play();
+                    } catch (Exception e) {
+                        System.out.println("Client " + name2 + " threw Exception: " + e.getMessage());
+                    }
                 }).start();
                 
                 Util.pauseMillis(1000);
                 new Thread(() -> {
-                    sam.selectStartingPlayer("Sam");
+                    p2.selectStartingPlayer(name2);
                 }).start();
                 
             } catch(Exception e) {
-                System.out.println("Client Sam threw Exception: " + e.getMessage());
+                System.out.println("Client " + name2 + "threw Exception: " + e.getMessage());
             }
             
         }).start();

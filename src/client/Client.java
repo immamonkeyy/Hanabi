@@ -614,11 +614,11 @@ public class Client {
                 JOptionPane.PLAIN_MESSAGE);
     }
     
-    // For testing only
+    // For Main testing only
     public void selectStartingPlayer(String name) {
         out.println(Commands.CHOOSE_STARTING_PLAYER + name);
     }
-
+    
     public static void main(String[] args) throws Exception {
         String server = "localhost";
         if (args.length > 0) server = args[0];
