@@ -99,12 +99,6 @@ public class ClientBoard {
     }
 
     private void addToDiscards(ClientCard c) {
-        String tabs = "\t\t\t\t\t";
-        if (c.color() != CardColor.MULTI)
-            tabs += "\t";
-        String message = "Discarding " + c.toMessageString();
-        System.out.println(message + tabs + message);
-
         if (!(played.get(c.color()) instanceof ClientCard)) {
             oopsDiscards.get(c.color()).add(c);
         } else {

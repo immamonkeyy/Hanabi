@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
+import color.CardColor;
 import shared.Card;
 import shared.ColorMap;
 import shared.Util;
@@ -11,6 +12,7 @@ import shared.Util;
 public class Hanabi {
 
     private ServerPlayer currentPlayer;
+    private ServerPlayer tookLastCard;
     private List<ServerPlayer> players;
     private boolean started;
     private Deck deck;
@@ -137,7 +139,7 @@ public class Hanabi {
     }
 
     public void discard(int position) {
-        remainingClues++; // TODO
+        remainingClues++; // TODO if discard when not allowed
         Card card = currentPlayer.getHand().remove(position).getCard();
 
         discarded.get(card.color()).add(card);
@@ -164,6 +166,19 @@ public class Hanabi {
         if (card.value() == 5) {
             remainingClues++;
             forEachPlayer(p -> p.fireworkComplete(card.color()));
+            
+            //Check if won the game?
+            boolean won = true;
+            for (CardColor c : played.keySet()) {
+                if (played.get(c) == null || played.get(c).value() < 5) {
+                    won = false;
+                }
+            }
+            
+            if (won) {
+                System.out.println("Hooray! You've won the game!");
+                // TODO: Ask them if they want to play again?
+            }
         }
     }
 
@@ -173,6 +188,7 @@ public class Hanabi {
         remainingFuckups--;
         if (remainingFuckups == 0) {
             // GAME OVER! YOU SUCK
+            // TODO: Ask them if they want to keep playing?
             System.out.println("Game over. You suck.");
         }
     }
@@ -180,13 +196,26 @@ public class Hanabi {
     private void nextTurn(int pauseMillis) {
         Util.pauseMillis(pauseMillis);
         currentPlayer = currentPlayer.getNextPlayer();
+        
+        if (tookLastCard != null && tookLastCard.equals(currentPlayer)) {
+            // TODO: Ask them if they want to keep playing?
+            System.out.println("Game over.");
+        }
+        
         forEachPlayer(p -> p.nextTurn());
     }
 
     private void draw(ServerPlayer player, int pauseMillis) {
-        Util.pauseMillis(pauseMillis);
-        Card card = deck.draw();
-        forEachPlayer(p -> p.draw(player, card));
+        if (deck.cardsLeft() > 0) {
+            Util.pauseMillis(pauseMillis);
+            Card card = deck.draw();
+            
+            if (deck.cardsLeft() == 0) { //last card!
+                tookLastCard = player;
+            }
+            
+            forEachPlayer(p -> p.draw(player, card));
+        }
     }
 
     // Pass each player to the given consumer in turn order, starting with the

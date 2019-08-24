@@ -27,6 +27,7 @@ public class Main {
                 p1.play();
             } catch(Exception e) {
                 System.out.println("Client " + name1 + " threw Exception: " + e.getMessage());
+                e.printStackTrace();
             }
         }).start();
         
@@ -41,6 +42,7 @@ public class Main {
                         p2.play();
                     } catch (Exception e) {
                         System.out.println("Client " + name2 + " threw Exception: " + e.getMessage());
+                        e.printStackTrace();
                     }
                 }).start();
                 
@@ -51,6 +53,7 @@ public class Main {
                 
             } catch(Exception e) {
                 System.out.println("Client " + name2 + "threw Exception: " + e.getMessage());
+                e.printStackTrace();
             }
             
         }).start();
