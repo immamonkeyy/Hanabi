@@ -31,19 +31,26 @@ public class ClientPlayer {
     public ClientPlayer(String name, boolean isMe, JButton[] buttons, JPanel buttonPanel, boolean multi) {
         playerName = name;
         this.isMe = isMe;
-        hand = new ArrayList<ClientCard>();
         buttonPanelSizeSet = false;
         multicolor = multi;
 
         this.buttons = buttons;
         this.buttonPanel = buttonPanel;
-
+        
         cardPanel = InvisiblePanel.create();
 
         turnPanel = InvisiblePanel.create(new BorderLayout());
         turnPanel.add(new JLabel(playerName), BorderLayout.NORTH);
         turnPanel.add(cardPanel, BorderLayout.CENTER);
         turnPanel.setBackground(Color.GREEN);
+        
+        reset();
+    }
+    
+    public void reset() {
+        hand = new ArrayList<ClientCard>();
+        
+        cardPanel.removeAll();
     }
 
     // ClientPlayer must instantiate the card to get its position

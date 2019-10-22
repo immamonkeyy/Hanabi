@@ -52,7 +52,11 @@ public class DeckPanel extends JPanel {
     }
 
     public void useFuckup(int i) {
-        fuckups[i].use();
+        // if we kept playing, it's possible fuckup tokens are negative
+        // guard against ArrayIndexOutOfBoundsException
+        if (i >= 0) {
+            fuckups[i].use();
+        }
     }
 
     public void useClue(int i) {

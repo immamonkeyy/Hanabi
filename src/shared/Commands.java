@@ -26,4 +26,13 @@ public class Commands {
     public static final String SET_FUCKUPS = "SETFUCKUPS ";
 
     public static final String CARDS_LEFT = "CARDSLEFT ";
+    
+    public static final String GAME_OVER_KEEP_PLAYING = "GAMEOVERKEEPPLAYING ";
+    public static final String KEEP_PLAYING = "KEEPPLAYING ";
+    public static final String GAME_OVER_PLAY_AGAIN = "GAMEOVERPLAYAGAIN ";
+    public static final String QUIT = "QUIT ";
+    
+    public static final String PLAY_AGAIN_SHUFFLE = "PLAYAGAINSHUFFLE ";
+    public static final String PLAY_AGAIN_DONT_SHUFFLE = "PLAYAGAINDONTSHUFFLE ";
+    public static final String RESET = "RESET ";
 }

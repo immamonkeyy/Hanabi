@@ -49,4 +49,10 @@ public class Card {
         }
         return isTarget;
     }
+    
+    public static Card getCard(String cardStr) {
+        int value = Integer.parseInt(cardStr.substring(0, 1));
+        String color = cardStr.substring(1);
+        return new Card(CardColor.fromString(color), value);
+    }
 }

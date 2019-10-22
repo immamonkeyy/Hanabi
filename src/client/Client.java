@@ -2,7 +2,7 @@ package client;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Dimension;
+import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.Point;
 import java.awt.event.MouseAdapter;
@@ -23,10 +23,6 @@ import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JScrollBar;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
-import javax.swing.ScrollPaneLayout;
 import javax.swing.SwingUtilities;
 
 import clientboard.ClientBoard;
@@ -37,18 +33,6 @@ import color.CardColor;
 import shared.Card;
 import shared.Commands;
 import shared.Util;
-
-/*
- * Client needs to know:
- * -How many clues there are left DONE
- * -How many fuckups there are left
- * -Opponents cards DONE
- * -What opponents have been told NOT NEEDED
- * -State of fireworks DONE
- * -What cards have been discarded (safe vs unsafe)
- * -What clues they know DONE
- * -Whose turn it is, whose turn is next DONE
- */
 
 //TODO: End game if use up all fuckup tokens
 //TODO: Win game with all 5s
@@ -71,6 +55,9 @@ import shared.Util;
 //TODO: End game on all 5s, end game when you run out of cards, let players have extra turns after cards end
 //TODO: Add in variants...OMG WHAT?!
 
+//TODO: Game log when a player says to keep playing?
+//TODO: When the players legitimately run out of cards
+
 public class Client {
 
     private static int PORT = 8901;
@@ -80,8 +67,8 @@ public class Client {
     private PrintWriter out;
 
     private AllPlayers players;
-    ClientPlayer selectedPlayer;
-    List<ClientCard> selectedCards;
+    private ClientPlayer selectedPlayer;
+    private List<ClientCard> selectedCards;
 
     private JPanel playersCards;
     private JPanel myCards;
@@ -99,7 +86,7 @@ public class Client {
     private HanabiFireworksPanel fireworksPanel;
     private JFrame window;
 
-    GameLog log;
+    private GameLog log;
 
     private static final Color BOARD_COLOR = new Color(0, 153, 0);
 
@@ -114,20 +101,37 @@ public class Client {
         out = new PrintWriter(socket.getOutputStream(), true);
 
         players = new AllPlayers();
-        selectedPlayer = null;
-        selectedCards = new ArrayList<ClientCard>();
+//        selectedPlayer = null;
+//        selectedCards = new ArrayList<ClientCard>();
 
-        playersCards = InvisiblePanel.create();
-        ((FlowLayout) playersCards.getLayout()).setHgap(20);
-
-        myCards = InvisiblePanel.create();
+//        playersCards = InvisiblePanel.create();
+//        ((FlowLayout) playersCards.getLayout()).setHgap(20);
+//
+//        myCards = InvisiblePanel.create();
 
         fireworksPanel = new HanabiFireworksPanel();
         log = new GameLog();
 
         myName = null;
+//        dialog = null;
+//        freeze = false;
+    }
+    
+    public void reset() {
+        //TODO: Whose turn is it?
+        FlowLayout layout = new FlowLayout();
+        layout.setHgap(20);
+        playersCards = InvisiblePanel.create(layout);
+
+        myCards = InvisiblePanel.create();
         dialog = null;
         freeze = false;
+        
+        selectedPlayer = null;
+        selectedCards = new ArrayList<ClientCard>();
+        
+        players.reset();
+        resetBoard();
     }
 
     public void play() throws Exception {
@@ -172,8 +176,8 @@ public class Client {
                 });
 
                 Util.handleResponse(Commands.START_GAME, response, startingPlayer -> {
-                    log.append(action(startingPlayer, "start", "the game!"));
                     players.startGame(startingPlayer);
+                    log.append(action(startingPlayer, "start", "the game!"));
                     closeDialog();
                     try {
                         SwingUtilities.invokeAndWait(() -> drawBoard());
@@ -214,6 +218,7 @@ public class Client {
                 });
 
                 Util.handleResponse(Commands.DRAW_CARD, response, input -> {
+                    closeDialog();
                     Util.handlePlayerCard(input, (playerName, cardStr) -> {
                         addPlayerCard(playerName, cardStr);
                     });
@@ -229,8 +234,8 @@ public class Client {
                 Util.handleResponse(Commands.FIREWORK_COMPLETE, response, input -> {
                     board.getAClueBack();
                     CardColor color = CardColor.fromString(input);
-                    Point location = board.getLocation(color);
-                    fireworksPanel.fireworkComplete(location, color);
+//                    Point location = board.getLocation(color);
+//                    fireworksPanel.fireworkComplete(location, color);
                     log.append(color.toString() + " firework complete!");
                 });
 
@@ -248,47 +253,30 @@ public class Client {
                     int cardsLeft = Integer.parseInt(input);
                     board.setRemainingCards(cardsLeft);
                 });
+                
+                Util.handleResponse(Commands.GAME_OVER_PLAY_AGAIN, response, input -> {
+                    new Thread(() -> {
+                        gameOverPlayAgain(input);
+                    }).start();
+                });
+                
+                Util.handleResponse(Commands.GAME_OVER_KEEP_PLAYING, response, input -> {
+                    new Thread(() -> {
+                        gameOverKeepPlaying("Game over: " + input + "\nDo you want to keep playing anyway?");
+                    }).start();
+                });
+                
+                Util.handleResponse(Commands.QUIT, response, () -> {
+                    System.exit(0);
+                });
+                
+                Util.handleResponse(Commands.RESET, response, () -> {
+                    closeDialog();
+                    reset();
+                });
             }
         } finally {
             socket.close();
-        }
-    }
-
-    private String recipient(String n) {
-        return n.equals(myName) ? "you" : n;
-    }
-
-    private String action(String name, String verb, String rest) {
-        return action(name, verb, verb + "s", rest);
-    }
-
-    private String action(String name, String verbSecond, String verbThird, String rest) {
-        String str;
-        if (name.equals(myName)) {
-            str = "you " + verbSecond;
-        } else
-            str = name + " " + verbThird;
-        return str + " " + rest;
-    }
-
-    private void announceClueGiven(String playerName, String clue) {
-        String message = action(players.turn().getPlayerName(), "tell", recipient(playerName) + " about: " + clue);
-        showAutoCloseMessageDialog(message);
-        log.append(message);
-    }
-
-    private void clearSelected() {
-        board.clearSelected();
-        if (selectedPlayer != null) {
-            // when clue was given, their selected cards won't be in the
-            // selectedCards list so we just deselect all the cards in their hand
-            for (ClientCard c : selectedPlayer.getHand()) {
-                c.setSelected(false);
-            }
-            selectedPlayer.hideButtons();
-            ;
-            selectedPlayer = null;
-            selectedCards.clear();
         }
     }
 
@@ -311,8 +299,10 @@ public class Client {
             buttons[0].addActionListener(e -> giveClue(buttonPanel));
         }
 
-        for (JButton b : buttons)
+        for (JButton b : buttons) {
             buttonPanel.add(b);
+        }
+        
         ClientPlayer player = new ClientPlayer(name, isMe, buttons, buttonPanel, multicolor);
         players.addPlayer(player);
         log.append("Adding player \"" + name + "\"" + (isMe ? " (you!)" : ""));
@@ -387,42 +377,30 @@ public class Client {
         return false;
     }
 
-    private void showMessageDialog(String message) {
-        JOptionPane.showMessageDialog(window, message, myName, JOptionPane.PLAIN_MESSAGE, null);
-    }
-
-    private void intro() {
-        if (players.names().size() == 1) {
-            showAutoCloseMessageDialog("Waiting for more players...");
-        } else
-            chooseStartingPlayerThread();
-    }
-
-    private void chooseStartingPlayerThread() {
-        new Thread(() -> {
-            String startingPlayer = chooseStartingPlayer();
-
-            if (startingPlayer != null) {
-                out.println(Commands.CHOOSE_STARTING_PLAYER + startingPlayer);
-            }
-        }).start();
-    }
-
-    private ClientCard removePlayerCard(String playerName, String position) {
-        clearSelected();
-        ClientPlayer player = players.get(playerName);
-        ClientCard card = player.removeCard(Integer.parseInt(position));
-        card.clean();
-        return card;
-    }
-
     private void addPlayerCard(String playerName, String cardStr) {
         ClientPlayer chosenPlayer = players.get(playerName);
-        ClientCard card = chosenPlayer.addCard(getCard(cardStr));
+        ClientCard card = chosenPlayer.addCard(Card.getCard(cardStr));
         card.addMouseListener(new MouseAdapter() {
+            
+            private boolean validClick(ClientPlayer player) {
+                // Board is frozen (in between turns)
+                if (freeze)
+                    return false; // TODO: Do I actually need this?
+
+                // Not my turn
+                if (!players.isTurn(myName))
+                    return false;
+
+                // Already selected a different player first
+                if (selectedPlayer != null && !selectedPlayer.equals(player))
+                    return false;
+
+                return true;
+            }
 
             @Override
             public void mouseClicked(MouseEvent e) {
+                //System.out.println("CLICK!!");
                 if (validClick(chosenPlayer)) {
                     if (!players.get(myName).equals(chosenPlayer) && !board.hasClues()) {
                         showTimedCloseMessageDialog("No clues to give!");
@@ -466,8 +444,6 @@ public class Client {
                         }
                     }).start();
                 }
-
-                
             }
 
             @Override
@@ -483,12 +459,32 @@ public class Client {
         });
     }
 
-    private Card getCard(String cardStr) {
-        int value = Integer.parseInt(cardStr.substring(0, 1));
-        String color = cardStr.substring(1);
-        return new Card(CardColor.fromString(color), value);
+    private ClientCard removePlayerCard(String playerName, String position) {
+        clearSelected();
+        ClientPlayer player = players.get(playerName);
+        ClientCard card = player.removeCard(Integer.parseInt(position));
+        card.clean();
+        return card;
     }
+    
+    //************************************************************************************** GUI
+    //*************************************************************************************************
 
+    private void clearSelected() {
+        board.clearSelected();
+        if (selectedPlayer != null) {
+            // when clue was given, their selected cards won't be in the
+            // selectedCards list so we just deselect all the cards in their hand
+            for (ClientCard c : selectedPlayer.getHand()) {
+                c.setSelected(false);
+            }
+            selectedPlayer.hideButtons();
+            
+            selectedPlayer = null;
+            selectedCards.clear();
+        }
+    }
+    
     private void populateCards() {
         ClientPlayer me = players.get(myName);
 
@@ -506,27 +502,15 @@ public class Client {
         playersCards.repaint();
     }
 
-    private boolean validClick(ClientPlayer player) {
-        // Board is frozen (in between turns)
-        if (freeze)
-            return false; // TODO: Do I actually need this?
-
-        // Not my turn
-        if (!players.isTurn(myName))
-            return false;
-
-        // Already selected a different player first
-        if (selectedPlayer != null && !selectedPlayer.equals(player))
-            return false;
-
-        return true;
-    }
-
-    private void drawBoard() {
+    private void drawBoard() {        
         window = new JFrame(myName);
         window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         window.setSize(650, 670);
 
+        reset();
+    }
+    
+    private void resetBoard() {
         board = new ClientBoard(multicolor, clueCount, fuckupCount);
 
         JPanel innerView = InvisiblePanel.create(new BorderLayout());
@@ -544,19 +528,77 @@ public class Client {
         outerView.setBackground(BOARD_COLOR);
         outerView.add(innerView, BorderLayout.CENTER);
         outerView.add(rightPanel, BorderLayout.EAST);
-        window.add(outerView);
+        
+        window.getContentPane().removeAll();
+        window.getContentPane().add(outerView);
 
-        JPanel glass = (JPanel) window.getGlassPane();
-        glass.setLayout(new BorderLayout());
-        glass.add(fireworksPanel, BorderLayout.CENTER);
-        glass.setVisible(true);
+        //JPanel glass = (JPanel) window.getGlassPane();
+        //glass.setLayout(new BorderLayout());
+        //glass.add(fireworksPanel, BorderLayout.CENTER);
+        //glass.setVisible(true);
 
         window.setVisible(true);
 
         populateCards();
-        board.saveCardLocationsRelativeTo(innerView);
+//        board.saveCardLocationsRelativeTo(innerView);
+    }
+    
+    //************************************************************************************** String methods
+    //*************************************************************************************************
+    
+    private String recipient(String n) {
+        return n.equals(myName) ? "you" : n;
     }
 
+    private String action(String name, String verb, String rest) {
+        return action(name, verb, verb + "s", rest);
+    }
+
+    private String action(String name, String verbSecond, String verbThird, String rest) {
+        String str;
+        if (name.equals(myName)) {
+            str = "you " + verbSecond;
+        } else
+            str = name + " " + verbThird;
+        return str + " " + rest;
+    }
+        
+  //************************************************************************************** Dialogs
+  //*************************************************************************************************
+
+    private String getName() {
+        return JOptionPane.showInputDialog(null, "Choose a screen name:", "Screen name selection",
+                JOptionPane.PLAIN_MESSAGE);
+    }
+    
+    private void announceClueGiven(String playerName, String clue) {
+        String message = action(players.turn().getPlayerName(), "tell", recipient(playerName) + " about: " + clue);
+        showAutoCloseMessageDialog(message);
+        log.append(message);
+    }
+    
+    private void showMessageDialog(String message) {
+        JOptionPane.showMessageDialog(window, message, myName, JOptionPane.PLAIN_MESSAGE, null);
+    }
+
+    private void intro() {
+        if (players.names().size() == 1) {
+            showAutoCloseMessageDialog("Waiting for more players...");
+        } else {
+            chooseStartingPlayerThread();
+        }
+    }
+
+    private void chooseStartingPlayerThread() {
+        new Thread(() -> {
+            String startingPlayer = chooseStartingPlayer();
+
+            if (startingPlayer != null) {
+                out.println(Commands.CHOOSE_STARTING_PLAYER + startingPlayer);
+            }
+        }).start();
+    }
+    
     private void closeDialog() {
         if (dialog != null) dialog.dispose();
     }
@@ -598,7 +640,7 @@ public class Client {
 
         pane.selectInitialValue();
         dialog.setVisible(true);
-        dialog.dispose();
+        closeDialog();
 
         Object value = pane.getInputValue();
 
@@ -608,11 +650,68 @@ public class Client {
 
         return (String) value;
     }
+    
+    private void gameOverPlayAgain(String message) {
+        String yesShuffle = "Yes - shuffle deck";
+        String yesDontShuffle = "Yes - don't shuffle deck";
+        String no = "No - fuck this game";
 
-    private String getName() {
-        return JOptionPane.showInputDialog(null, "Choose a screen name:", "Screen name selection",
-                JOptionPane.PLAIN_MESSAGE);
+        message += "\nDo you want to play again?";
+        JOptionPane pane = new JOptionPane(message, JOptionPane.PLAIN_MESSAGE, JOptionPane.DEFAULT_OPTION, null,
+                new Object[] {no, yesDontShuffle, yesShuffle}, null);
+        
+        closeDialog();
+        dialog = pane.createDialog(window, myName);
+
+        pane.selectInitialValue();
+        dialog.setVisible(true);
+        closeDialog();
+
+        Object value = pane.getValue();
+        
+        if (value == null) {
+            System.out.println("VALUE WAS NULL WHAT DO I DO?!"); //TODO
+        }
+        else if (value.equals(yesShuffle)) {
+            System.out.println("Play again! Shuffle");
+            out.println(Commands.PLAY_AGAIN_SHUFFLE);
+        } 
+        else if (value.equals(yesDontShuffle)) {
+            System.out.println("Play again! Don't shuffle");
+            //out.println(Commands.KEEP_PLAYING);
+            out.println(Commands.PLAY_AGAIN_DONT_SHUFFLE);
+        }
+        else if (value.equals(no)) {
+            System.out.println("Don't play again!");
+            out.println(Commands.QUIT);
+        }
     }
+    
+    private void gameOverKeepPlaying(String message) {
+        JOptionPane pane = new JOptionPane(message, JOptionPane.PLAIN_MESSAGE, JOptionPane.YES_NO_OPTION);
+
+        closeDialog();
+        dialog = pane.createDialog(window, myName);
+
+        pane.selectInitialValue();
+        dialog.setVisible(true);
+        closeDialog();
+
+        Object value = pane.getValue();
+        
+        if (value == null) {
+            //TODO
+        } else if (value.equals(JOptionPane.YES_OPTION)) {
+            System.out.println("Keep playing!!");
+            out.println(Commands.KEEP_PLAYING);
+        } else if (value.equals(JOptionPane.NO_OPTION)) {
+            System.out.println("Don't keep playing. Play again?");
+            out.println(Commands.GAME_OVER_PLAY_AGAIN);
+        }
+    }
+    
+    //************************************************************************************** Misc.
+    //*************************************************************************************************
     
     // For Main testing only
     public void selectStartingPlayer(String name) {

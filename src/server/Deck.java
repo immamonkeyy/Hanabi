@@ -15,10 +15,26 @@ public class Deck {
     public Deck(boolean multicolor) {
         next = 0;
 
-        int size = ALL_VALUES.length * CardColor.getAllColors(multicolor).length;
+//        int size = ALL_VALUES.length * CardColor.getAllColors(multicolor).length;
+        
+      int size = 15;
 
         cards = new Card[size];
-        populateCards(multicolor);
+//        populateCards(multicolor);
+        
+        for (int i = 0; i < 5; i++) {
+            cards[next++] = new Card(CardColor.BLUE, i + 1); 
+        }
+        
+        for (int i = 0; i < 5; i++) {
+            cards[next++] = new Card(CardColor.YELLOW, i + 1); 
+        }
+        
+        for (int i = 0; i < 5; i++) {
+            cards[next++] = new Card(CardColor.RED, i + 1); 
+        }
+        next = 0;
+        
         shuffle();
     }
 
@@ -59,9 +75,9 @@ public class Deck {
         return cards.length - next;
     }
 
-    public void reset() {
+    public void reset(boolean shuffle) {
         next = 0;
-        shuffle();
+        if (shuffle) shuffle();
     }
 
 }

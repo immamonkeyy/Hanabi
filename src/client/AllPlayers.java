@@ -10,6 +10,7 @@ public class AllPlayers {
     private ClientPlayer firstPlayerAdded;
     private ClientPlayer lastPlayerAdded;
     private ClientPlayer turn;
+    private ClientPlayer startingPlayer;
 
     public AllPlayers() {
         players = new LinkedHashMap<String, ClientPlayer>();
@@ -28,7 +29,7 @@ public class AllPlayers {
 
     public void startGame(String playerName) {
         lastPlayerAdded.setNextPlayer(firstPlayerAdded);
-        turn = players.get(playerName);
+        turn = startingPlayer = players.get(playerName);
         turn.highlight(true);
     }
 
@@ -58,6 +59,14 @@ public class AllPlayers {
 
     public ClientPlayer turn() {
         return turn;
+    }
+    
+    public void reset() {
+        for (ClientPlayer p : players.values()) {
+            p.reset();
+        }
+        turn = startingPlayer;
+        turn.highlight(true);
     }
 
 }

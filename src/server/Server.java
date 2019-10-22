@@ -17,7 +17,7 @@ public class Server {
             // change it all here if you wanna
             boolean multicolor = true;
             int clues = 8;
-            int fuckups = 3;
+            int fuckups = 1;
 
             Hanabi game = new Hanabi(multicolor, clues, fuckups);
             while (true) {

@@ -12,13 +12,20 @@ import shared.Util;
 public class Hanabi {
 
     private ServerPlayer currentPlayer;
-    private ServerPlayer tookLastCard;
+    private ServerPlayer startingPlayer;
+    
+    private Integer turnsLeft;
+    
     private List<ServerPlayer> players;
     private boolean started;
     private Deck deck;
+    private boolean keepPlaying;
 
     private ColorMap<Card> played;
     private ColorMap<List<Card>> discarded;
+    
+    private int initialClues;
+    private int initialFuckups;
 
     private int remainingClues;
     private int remainingFuckups;
@@ -29,16 +36,30 @@ public class Hanabi {
 
     public Hanabi(boolean multi, int clues, int fuckups) {
         multicolor = multi;
+        initialClues = clues;
+        initialFuckups = fuckups;
 
         players = new ArrayList<ServerPlayer>();
         deck = new Deck(multicolor);
 
+        reset(false);
+    }
+    
+    public void reset(boolean shuffle) {
+        deck.reset(shuffle);
+        
         played = new ColorMap<Card>(multicolor, () -> NOT_PLAYED);
         discarded = new ColorMap<List<Card>>(multicolor, () -> new ArrayList<Card>());
 
         started = false;
-        remainingClues = clues;
-        remainingFuckups = fuckups;
+        remainingClues = initialClues;
+        remainingFuckups = initialFuckups;
+        turnsLeft = null;
+        keepPlaying = false;
+        
+        forEachPlayer(p -> p.reset());
+        currentPlayer = startingPlayer;
+        deal();
     }
 
     public boolean multicolor() {
@@ -92,16 +113,16 @@ public class Hanabi {
         for (ServerPlayer p : players) {
             p.startGame(playerName, multicolor, remainingClues, remainingFuckups);
             if (playerName.equals(p.getPlayerName()))
-                currentPlayer = p;
+                currentPlayer = startingPlayer = p;
         }
 
-        System.out.println("Starting game!");
         started = true;
 
         deal();
     }
 
     private void deal() {
+        System.out.println("Starting game!");
         int cardsPerPlayer = players.size() > 3 ? 4 : 5;
 
         for (int c = 0; c < cardsPerPlayer; c++) {
@@ -125,17 +146,20 @@ public class Hanabi {
 
     public void play(int position) {
         Card card = currentPlayer.getHand().remove(position).getCard();
-
+        boolean keepPlaying;
+        
         int turnPause = 500;
         if (isValidPlay(card)) {
-            validPlay(position, card);
+            keepPlaying = validPlay(position, card);
         } else {
-            invalidPlay(position, card);
+            keepPlaying = invalidPlay(position, card);
             turnPause = 2000;
         }
 
-        draw(currentPlayer, 500);
-        nextTurn(turnPause);
+        if (keepPlaying) {
+            draw(currentPlayer, 500);
+            nextTurn(turnPause);
+        }
     }
 
     public void discard(int position) {
@@ -159,7 +183,7 @@ public class Hanabi {
         nextTurn(2000);
     }
 
-    private void validPlay(int position, Card card) {
+    private boolean validPlay(int position, Card card) {
         played.put(card.color(), card);
         forEachPlayer(p -> p.validPlay(currentPlayer, position));
 
@@ -167,41 +191,66 @@ public class Hanabi {
             remainingClues++;
             forEachPlayer(p -> p.fireworkComplete(card.color()));
             
-            //Check if won the game?
-            boolean won = true;
-            for (CardColor c : played.keySet()) {
-                if (played.get(c) == null || played.get(c).value() < 5) {
-                    won = false;
-                }
-            }
-            
-            if (won) {
-                System.out.println("Hooray! You've won the game!");
-                // TODO: Ask them if they want to play again?
+            if (didWeWin()) {
+                String message = "Hooray! We've won the game!";
+                if (keepPlaying) message += "\nWe kind of cheated though.";
+                final String finalMessage = message;
+                System.out.println(finalMessage);
+                forEachPlayer(p -> p.gameOverPlayAgain(finalMessage));
+                return false;
             }
         }
+        return true;
+    }
+    
+    public void quit() {
+        forEachPlayer(p -> p.quit());
+        Util.pauseMillis(5000);
+        System.exit(0);
+    }
+    
+    public void restart(boolean shuffle) {
+        
+    }
+    
+    private boolean didWeWin() {
+        for (CardColor c : played.keySet()) {
+            if (played.get(c) == null || played.get(c).value() < 5) {
+                return false;
+            }
+        }
+        return true;
     }
 
-    private void invalidPlay(int position, Card card) {
+    private boolean invalidPlay(int position, Card card) {
         discarded.get(card.color()).add(card);
         forEachPlayer(p -> p.invalidPlay(currentPlayer, position));
         remainingFuckups--;
-        if (remainingFuckups == 0) {
+        if (remainingFuckups == 0 && !keepPlaying) {
             // GAME OVER! YOU SUCK
             // TODO: Ask them if they want to keep playing?
-            System.out.println("Game over. You suck.");
+            System.out.println("Game over. You fucked it up.");
+            Util.pauseMillis(1500);
+            forEachPlayer(p -> p.gameOverKeepPlaying("Too many invalid plays."));
+            return false;
         }
+        return true;
     }
 
-    private void nextTurn(int pauseMillis) {
-        Util.pauseMillis(pauseMillis);
-        currentPlayer = currentPlayer.getNextPlayer();
-        
-        if (tookLastCard != null && tookLastCard.equals(currentPlayer)) {
-            // TODO: Ask them if they want to keep playing?
-            System.out.println("Game over.");
+    private void nextTurn(int pauseMillis) {   
+        if (turnsLeft != null) {
+            if (turnsLeft == 0) {
+                System.out.println("Game over. Cards ran out.");
+                forEachPlayer(p -> p.gameOverKeepPlaying("Cards ran out."));
+                turnsLeft = null;
+                return;
+            } else if (turnsLeft > 0) {
+               turnsLeft--;
+            }
         }
         
+        Util.pauseMillis(pauseMillis);
+        currentPlayer = currentPlayer.getNextPlayer();
         forEachPlayer(p -> p.nextTurn());
     }
 
@@ -211,11 +260,21 @@ public class Hanabi {
             Card card = deck.draw();
             
             if (deck.cardsLeft() == 0) { //last card!
-                tookLastCard = player;
+                turnsLeft = players.size();
             }
             
             forEachPlayer(p -> p.draw(player, card));
         }
+    }
+    
+    public void keepPlaying() {
+        keepPlaying = true;
+        draw(currentPlayer, 500);
+        nextTurn(2000);
+    }
+    
+    public void gameOverPlayAgain() {
+        forEachPlayer(p -> p.gameOverPlayAgain(""));
     }
 
     // Pass each player to the given consumer in turn order, starting with the

@@ -50,8 +50,10 @@ public class ServerPlayer extends Thread {
     }
 
     public void draw(ServerPlayer p, Card card) {
-        if (p == this)
+        if (p == this) {
             hand.add(new HandCard(card, game.multicolor()));
+        }
+        
         clientOut.println(Commands.CARDS_LEFT + game.cardsLeft());
         clientOut.println(Commands.DRAW_CARD + p.getPlayerName() + ":" + card.toString());
     }
@@ -66,6 +68,10 @@ public class ServerPlayer extends Thread {
 
     public void discard(ServerPlayer p, int position) {
         clientOut.println(Commands.VALID_DISCARD + p.getPlayerName() + ":" + position);
+    }
+    
+    public void gameOverKeepPlaying(String why) {
+        clientOut.println(Commands.GAME_OVER_KEEP_PLAYING + why);
     }
 
     public void nextTurn() {
@@ -110,6 +116,18 @@ public class ServerPlayer extends Thread {
         }
         clientOut.println(Commands.CLUE + playerName + ":" + clue);
     }
+    
+    public void gameOverPlayAgain(String message) {
+        clientOut.println(Commands.GAME_OVER_PLAY_AGAIN + message);
+    }
+    
+    public void quit() {
+        clientOut.println(Commands.QUIT);
+    }
+    
+    public void reset() {
+        clientOut.println(Commands.RESET);
+    }
 
     public void run() {
         try {
@@ -144,6 +162,26 @@ public class ServerPlayer extends Thread {
 
                 Util.handleResponse(Commands.CLUE, command, input -> {
                     Util.handlePlayerCard(input, (playerName, clue) -> game.clueTo(playerName, clue));
+                });
+                
+                Util.handleResponse(Commands.KEEP_PLAYING, command, () -> {
+                    game.keepPlaying();
+                });
+                
+                Util.handleResponse(Commands.GAME_OVER_PLAY_AGAIN, command, () -> {
+                    game.gameOverPlayAgain();
+                });
+                
+                Util.handleResponse(Commands.PLAY_AGAIN_SHUFFLE, command, () -> {
+                    game.reset(true);
+                });
+                
+                Util.handleResponse(Commands.PLAY_AGAIN_DONT_SHUFFLE, command, () -> {
+                    game.reset(false);
+                });
+                
+                Util.handleResponse(Commands.QUIT, command, () -> {
+                    game.quit();
                 });
             }
 

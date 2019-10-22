@@ -15,10 +15,10 @@ import shared.ColorMap;
 
 public class ClientBoard {
 
-    private int totalClues;
+    private int initialClues;
+    
     private int remainingClues;
     private int remainingFuckups;
-    private int remainingCards;
 
     private ColorMap<JPanel> played;
     private ColorMap<List<ClientCard>> oopsDiscards;
@@ -32,7 +32,7 @@ public class ClientBoard {
     private ClientCard lastPlayed;
 
     public ClientBoard(boolean multicolor, int clueCount, int fuckupCount) {
-        remainingClues = totalClues = clueCount;
+        initialClues = remainingClues = clueCount;
         remainingFuckups = fuckupCount;
 
         played = new ColorMap<JPanel>(multicolor, () -> ClientCard.getEmptySpot());
@@ -45,6 +45,10 @@ public class ClientBoard {
         discardPanel = new DiscardPanel();
 
         lastPlayed = null;
+    }
+    
+    public void reset() {
+        
     }
 
     public PlayPanel getPlayPanel() {
@@ -63,15 +67,15 @@ public class ClientBoard {
         return locations.get(c);
     }
 
-    public void saveCardLocationsRelativeTo(JPanel view) {
-        for (CardColor color : played.keySet()) {
-            JPanel card = played.get(color);
-            Point p = SwingUtilities.convertPoint(playPanel.getCardPanel(), card.getLocation(), view); // top left
-                                                                                                       // corner
-            p.translate(card.getWidth() / 2, card.getHeight() / 2); // center of card
-            locations.put(color, p);
-        }
-    }
+//    public void saveCardLocationsRelativeTo(JPanel view) {
+//        for (CardColor color : played.keySet()) {
+//            JPanel card = played.get(color);
+//            Point p = SwingUtilities.convertPoint(playPanel.getCardPanel(), card.getLocation(), view); // top left
+//                                                                                                       // corner
+//            p.translate(card.getWidth() / 2, card.getHeight() / 2); // center of card
+//            locations.put(color, p);
+//        }
+//    }
 
     public void clearSelected() {
         if (lastPlayed != null) {
@@ -139,11 +143,10 @@ public class ClientBoard {
     }
 
     public boolean cluesFull() {
-        return remainingClues == totalClues;
+        return remainingClues == initialClues;
     }
 
     public void setRemainingCards(int cardsLeft) {
-        remainingCards = cardsLeft;
         deckPanel.remainingCards(cardsLeft);
     }
 }
