@@ -376,27 +376,27 @@ public class Client {
         }
         return false;
     }
+    
+    private boolean validClick(ClientPlayer player) {
+        // Board is frozen (in between turns)
+        if (freeze)
+            return false; // TODO: Do I actually need this?
+
+        // Not my turn
+        if (!players.isTurn(myName))
+            return false;
+
+        // Already selected a different player first
+        if (selectedPlayer != null && !selectedPlayer.equals(player))
+            return false;
+
+        return true;
+    }
 
     private void addPlayerCard(String playerName, String cardStr) {
         ClientPlayer chosenPlayer = players.get(playerName);
         ClientCard card = chosenPlayer.addCard(Card.getCard(cardStr));
         card.addMouseListener(new MouseAdapter() {
-            
-            private boolean validClick(ClientPlayer player) {
-                // Board is frozen (in between turns)
-                if (freeze)
-                    return false; // TODO: Do I actually need this?
-
-                // Not my turn
-                if (!players.isTurn(myName))
-                    return false;
-
-                // Already selected a different player first
-                if (selectedPlayer != null && !selectedPlayer.equals(player))
-                    return false;
-
-                return true;
-            }
 
             @Override
             public void mouseClicked(MouseEvent e) {

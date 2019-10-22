@@ -226,7 +226,7 @@ public class Hanabi {
         discarded.get(card.color()).add(card);
         forEachPlayer(p -> p.invalidPlay(currentPlayer, position));
         remainingFuckups--;
-        if (remainingFuckups == 0 && !keepPlaying) {
+        if (remainingFuckups == 0) {
             // GAME OVER! YOU SUCK
             // TODO: Ask them if they want to keep playing?
             System.out.println("Game over. You fucked it up.");
