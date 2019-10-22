@@ -130,7 +130,7 @@ public class Client {
         selectedPlayer = null;
         selectedCards = new ArrayList<ClientCard>();
         
-        players.reset();
+        players.reset(); //clears all players' cards
         resetBoard();
     }
 
@@ -505,7 +505,7 @@ public class Client {
     private void drawBoard() {        
         window = new JFrame(myName);
         window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        window.setSize(650, 670);
+        window.setSize(800, 670); //width, height
 
         reset();
     }
@@ -527,15 +527,16 @@ public class Client {
         JPanel outerView = new JPanel(new BorderLayout());
         outerView.setBackground(BOARD_COLOR);
         outerView.add(innerView, BorderLayout.CENTER);
-        outerView.add(rightPanel, BorderLayout.EAST);
+//        outerView.add(rightPanel, BorderLayout.EAST);
         
         window.getContentPane().removeAll();
         window.getContentPane().add(outerView);
 
-        //JPanel glass = (JPanel) window.getGlassPane();
-        //glass.setLayout(new BorderLayout());
-        //glass.add(fireworksPanel, BorderLayout.CENTER);
-        //glass.setVisible(true);
+        // For some reason commenting this part out breaks everything wtf
+        JPanel glass = (JPanel) window.getGlassPane();
+        glass.setLayout(new BorderLayout());
+        glass.add(fireworksPanel, BorderLayout.CENTER);
+        glass.setVisible(true);
 
         window.setVisible(true);
 
