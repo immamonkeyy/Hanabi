@@ -14,7 +14,7 @@ public class PlayPanel extends JPanel {
     private JPanel cardPanel;
 
     // TODO: Two rows of play cards?
-    public PlayPanel(ColorMap<JPanel> played) {
+    public PlayPanel() {
         super();
 
         // GridBagLayout to be centered vertically
@@ -22,9 +22,6 @@ public class PlayPanel extends JPanel {
         this.setOpaque(false);
 
         cardPanel = InvisiblePanel.create();
-        for (CardColor c : played.keySet()) {
-            cardPanel.add(played.get(c));
-        }
         add(cardPanel);
     }
 
@@ -39,6 +36,19 @@ public class PlayPanel extends JPanel {
     // TODO: Make less ugly
     public JPanel getCardPanel() {
         return cardPanel;
+    }
+    
+    // Assume reset() has already been called on played
+    // Should this be called refresh() to match the discardPanel?
+    public void reset(ColorMap<JPanel> played) {
+        cardPanel.removeAll();
+        
+        for (CardColor c : played.keySet()) {
+            cardPanel.add(played.get(c));
+        }
+        
+        cardPanel.revalidate();
+        cardPanel.repaint();
     }
 
 }

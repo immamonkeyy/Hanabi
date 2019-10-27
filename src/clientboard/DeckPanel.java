@@ -101,4 +101,13 @@ public class DeckPanel extends JPanel {
             layeredDeck.revalidate();
         }
     }
+    
+    public void reset() {
+        for (ClueToken c : clues) {
+            c.getBack();
+        }
+        for (FuckupToken f : fuckups) {
+            f.getBack();
+        }
+    }
 }

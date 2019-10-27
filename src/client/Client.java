@@ -2,9 +2,7 @@ package client;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.FlowLayout;
-import java.awt.Point;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.BufferedReader;
@@ -102,36 +100,32 @@ public class Client {
 
         players = new AllPlayers();
 //        selectedPlayer = null;
-//        selectedCards = new ArrayList<ClientCard>();
+        selectedCards = new ArrayList<ClientCard>();
 
-//        playersCards = InvisiblePanel.create();
-//        ((FlowLayout) playersCards.getLayout()).setHgap(20);
-//
-//        myCards = InvisiblePanel.create();
-
-        fireworksPanel = new HanabiFireworksPanel();
-        log = new GameLog();
-
-        myName = null;
-//        dialog = null;
-//        freeze = false;
-    }
-    
-    public void reset() {
-        //TODO: Whose turn is it?
         FlowLayout layout = new FlowLayout();
         layout.setHgap(20);
         playersCards = InvisiblePanel.create(layout);
 
         myCards = InvisiblePanel.create();
+
+        fireworksPanel = new HanabiFireworksPanel();
+        log = new GameLog();
+
+        myName = null;
         dialog = null;
+//        freeze = false;
+    }
+    
+    public void reset() {
+        //TODO: Whose turn is it?
+//        dialog = null;
         freeze = false;
         
         selectedPlayer = null;
-        selectedCards = new ArrayList<ClientCard>();
+        selectedCards.clear();
         
         players.reset(); //clears all players' cards
-        resetBoard();
+        board.reset();
     }
 
     public void play() throws Exception {
@@ -506,11 +500,7 @@ public class Client {
         window = new JFrame(myName);
         window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         window.setSize(800, 670); //width, height
-
-        reset();
-    }
-    
-    private void resetBoard() {
+        
         board = new ClientBoard(multicolor, clueCount, fuckupCount);
 
         JPanel innerView = InvisiblePanel.create(new BorderLayout());
@@ -527,7 +517,7 @@ public class Client {
         JPanel outerView = new JPanel(new BorderLayout());
         outerView.setBackground(BOARD_COLOR);
         outerView.add(innerView, BorderLayout.CENTER);
-//        outerView.add(rightPanel, BorderLayout.EAST);
+        outerView.add(rightPanel, BorderLayout.EAST);
         
         window.getContentPane().removeAll();
         window.getContentPane().add(outerView);
@@ -541,7 +531,9 @@ public class Client {
         window.setVisible(true);
 
         populateCards();
-//        board.saveCardLocationsRelativeTo(innerView);
+//      board.saveCardLocationsRelativeTo(innerView);
+
+        reset();
     }
     
     //************************************************************************************** String methods

@@ -35,6 +35,11 @@ public abstract class Token extends JPanel {
         used = true;
         repaint();
     }
+    
+    public void getBack() {
+        used = false;
+        repaint();
+    }
 
     @Override
     public void paintComponent(Graphics g) {

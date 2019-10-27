@@ -16,6 +16,7 @@ import shared.ColorMap;
 public class ClientBoard {
 
     private int initialClues;
+    private int initialFuckups;
     
     private int remainingClues;
     private int remainingFuckups;
@@ -23,7 +24,7 @@ public class ClientBoard {
     private ColorMap<JPanel> played;
     private ColorMap<List<ClientCard>> oopsDiscards;
     private ColorMap<List<ClientCard>> okDiscards;
-    private Map<CardColor, Point> locations;
+//    private Map<CardColor, Point> locations;
 
     private DeckPanel deckPanel;
     private PlayPanel playPanel;
@@ -32,23 +33,35 @@ public class ClientBoard {
     private ClientCard lastPlayed;
 
     public ClientBoard(boolean multicolor, int clueCount, int fuckupCount) {
-        initialClues = remainingClues = clueCount;
-        remainingFuckups = fuckupCount;
+        initialClues = clueCount;
+        initialFuckups = fuckupCount;
 
         played = new ColorMap<JPanel>(multicolor, () -> ClientCard.getEmptySpot());
         oopsDiscards = new ColorMap<List<ClientCard>>(multicolor, () -> new ArrayList<ClientCard>());
         okDiscards = new ColorMap<List<ClientCard>>(multicolor, () -> new ArrayList<ClientCard>());
-        locations = new HashMap<CardColor, Point>();
+//        locations = new HashMap<CardColor, Point>();
 
-        playPanel = new PlayPanel(played);
+        playPanel = new PlayPanel();
         deckPanel = new DeckPanel(clueCount, fuckupCount);
         discardPanel = new DiscardPanel();
-
-        lastPlayed = null;
+        
+        reset();
     }
     
     public void reset() {
+        //This is all you have to reset here
         
+        remainingClues = initialClues;
+        remainingFuckups = initialFuckups;
+        
+        lastPlayed = null;
+        
+        played.reset();
+        playPanel.reset(played);
+        
+        oopsDiscards.reset();
+        okDiscards.reset();
+        discardPanel.refresh(oopsDiscards, okDiscards);
     }
 
     public PlayPanel getPlayPanel() {
@@ -63,9 +76,9 @@ public class ClientBoard {
         return discardPanel;
     }
 
-    public Point getLocation(CardColor c) {
-        return locations.get(c);
-    }
+//    public Point getLocation(CardColor c) {
+//        return locations.get(c);
+//    }
 
 //    public void saveCardLocationsRelativeTo(JPanel view) {
 //        for (CardColor color : played.keySet()) {

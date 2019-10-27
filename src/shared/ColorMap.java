@@ -11,19 +11,25 @@ import color.CardColor;
 public class ColorMap<T> extends LinkedHashMap<CardColor, T> {
 
     private List<CardColor> colorList;
+    private Supplier<T> supp;
 
     public ColorMap(boolean multicolor, Supplier<T> supp) {
         super();
 
+        this.supp = supp;
         colorList = Arrays.asList(CardColor.getAllColors(multicolor));
 
-        for (CardColor c : colorList) {
-            this.put(c, supp.get());
-        }
+        reset();
     }
 
     public int indexOf(CardColor color) {
         return colorList.indexOf(color);
+    }
+    
+    public void reset() {
+        for (CardColor c : colorList) {
+            this.put(c, supp.get());
+        }
     }
 
 }

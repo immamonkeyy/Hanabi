@@ -37,20 +37,20 @@ public class ClientPlayer {
         this.buttons = buttons;
         this.buttonPanel = buttonPanel;
         
+        hand = new ArrayList<ClientCard>();
         cardPanel = InvisiblePanel.create();
 
         turnPanel = InvisiblePanel.create(new BorderLayout());
         turnPanel.add(new JLabel(playerName), BorderLayout.NORTH);
         turnPanel.add(cardPanel, BorderLayout.CENTER);
         turnPanel.setBackground(Color.GREEN);
-        
-        reset();
     }
     
     public void reset() {
-        hand = new ArrayList<ClientCard>();
-        
+        hand.clear();
         cardPanel.removeAll();
+        cardPanel.revalidate();
+        cardPanel.repaint();
     }
 
     // ClientPlayer must instantiate the card to get its position
